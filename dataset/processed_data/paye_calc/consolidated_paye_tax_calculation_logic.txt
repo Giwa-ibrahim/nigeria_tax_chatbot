@@ -1,0 +1,60 @@
+Consolidated PAYE Tax Calculation Logic – Nigeria (Effective January 1, 2026)
+Based on the Nigeria Tax Act, 2025 – Sources: SMEPayroll, fiscalreforms.ng, BusinessDay NG
+1. Legal Framework
+Governing Legislation:
+Nigeria Tax Act, 2025
+Nigeria Tax Administration Act, 2025
+Nigeria Revenue Service Act, 2025
+Joint Revenue Board Act, 2025
+Passed by National Assembly: March 13, 2025
+Signed into Law by President Bola Ahmed Tinubu: June 26, 2025
+Effective Date: January 1, 2026
+⚖️ Note: The tax reform replaces the old Personal Income Tax Act and introduces a simplified, progressive tax structure. 
+
+2. Key Changes from Previous Law
+
+3. Taxable Income Formula
+Taxable Income=Gross Annual Income−∑Eligible Deductions
+✅ Six Eligible Deductions (must be documented):
+Pension contribution (employee portion = 8% of basic + housing + transport)
+NHF (National Housing Fund) = 2.5% of gross salary
+NHIS (National Health Insurance Scheme) = 5% of basic salary (for firms with ≥10 employees)
+Mortgage interest on owner-occupied residential property
+Rent relief = lower of:
+20% of annual rent paid, or
+₦500,000
+Life insurance premium paid for self or spouse
+📌 All deductions require proof (e.g., payment receipts, policy documents). 
+4. Progressive Tax Brackets (Annual)
+Correct monthly threshold = ₦50,000,000 ÷ 12 = ₦4,166,666.67. 
+5. Step-by-Step Calculation Example
+Gross Annual Income = Assumed as ₦1,500,000; No Deductions
+Gross Income: ₦1,500,000
+Deductions: ₦0
+Taxable Income: ₦1,500,000
+Tax Computation:
+₦800,000 × 0% = ₦0
+(₦1,500,000 – ₦800,000) = ₦700,000 × 15% = ₦105,000
+Annual PAYE: ₦105,000
+Monthly PAYE: ₦105,000 ÷ 12 = ₦8,750
+Effective Tax Rate: (₦105,000 ÷ ₦1,500,000) × 100 = 7.0%
+🔸 Compared to old law (₦114,000 tax), taxpayer saves ₦9,000/year. 
+
+6. Special Provisions & Exemptions
+Minimum wage earners: Tax-exempt
+Military officers: Tax-exempt
+Employment compensation:
+Up to ₦50 million → not taxable
+Amounts above ₦50M → taxable
+Independent contractors: Subject to 5% Withholding Tax (WHT), not PAYE
+7. Employer & Payroll Compliance Notes
+Pension: Employee = 8%, Employer = 10% (of basic + housing + transport)
+NHF: Employee = 2.5% of gross salary (optional in private sector)
+NHIS: Employee = 5%, Employer = 10% (for firms with ≥10 staff)
+Rent & mortgage deductions require supporting documents
+PAYE must be remitted monthly to FIRS or relevant State IRS
+8. Summary of Benefits of New System
+✅ Higher tax-free threshold (₦800k vs ~₦500k)
+✅ Transparent, fixed tax bands (no complex CRA formula)
+✅ Encourages formal savings (pension, NHF, NHIS)
+✅ Easier compliance and audit trail

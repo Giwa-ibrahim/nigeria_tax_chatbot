@@ -2,9 +2,14 @@ langchain
 langchain_text_splitters
 langchain-chroma
 langchain-community
-langchain-ollama
+langchain-huggingface
+langchain-groq
+sentence-transformers
 chainlit
 pypdf
 python-docx
+docx2txt
 streamlit
 chromadb
+pywin32
+python-dotenv
