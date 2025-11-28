@@ -11,11 +11,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 # Load environment variables
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-
+logger= logging.getLogger("vectors")    
 # Initialize text splitter
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=800,
@@ -32,10 +28,10 @@ def create_vectorstore(collection_name: str, persist_directory: str = "./chroma_
             embedding_function=get_embeddings(),
             persist_directory=persist_directory
         )
-        logging.info(f"Vectorstore '{collection_name}' ready")
+        logger.info(f"Vectorstore '{collection_name}' ready")
         return vectorstore
     except Exception as e:
-        logging.error(f"Error creating vectorstore: {str(e)}")
+        logger.error(f"Error creating vectorstore: {str(e)}")
         return None
 
 def get_existing_sources(vectorstore):
@@ -48,7 +44,7 @@ def get_existing_sources(vectorstore):
             return sources
         return set()
     except Exception as e:
-        logging.error(f"Error getting existing sources: {str(e)}")
+        logger.error(f"Error getting existing sources: {str(e)}")
         return set()
 
 def load_documents_to_vectorstore(
@@ -79,31 +75,31 @@ def load_documents_to_vectorstore(
     
     # Check if folder exists
     if not folder.exists():
-        logging.warning(f"Folder not found: {folder_path}")
-        logging.info(f"Vectorstore '{collection_name}' created (empty)")
+        logger.warning(f"Folder not found: {folder_path}")
+        logger.info(f"Vectorstore '{collection_name}' created (empty)")
         return vectorstore
     
     # Handle force reindex
     if force_reindex:
-        logging.info(f"Force reindexing '{collection_name}' - clearing existing documents")
+        logger.info(f"Force reindexing '{collection_name}' - clearing existing documents")
         client = chromadb.PersistentClient(path="./chroma_db")
         try:
             client.delete_collection(collection_name)
-            logging.info(f"Deleted existing collection: {collection_name}")
+            logger.info(f"Deleted existing collection: {collection_name}")
         except:
             pass
         vectorstore = create_vectorstore(collection_name)
         existing_sources = set()
     else:
         existing_sources = get_existing_sources(vectorstore)
-        logging.info(f"Found {len(existing_sources)} already indexed documents in '{collection_name}'")
+        logger.info(f"Found {len(existing_sources)} already indexed documents in '{collection_name}'")
     
     # Process each text file
     files_processed = 0
     for file_path in folder.glob("*.txt"):
         # Skip if already indexed
         if file_path.name in existing_sources:
-            logging.info(f"Skipped (already indexed): {file_path.name}")
+            logger.info(f"Skipped (already indexed): {file_path.name}")
             continue
         
         try:
@@ -126,16 +122,16 @@ def load_documents_to_vectorstore(
             
             # Add to vectorstore
             vectorstore.add_texts(texts=chunks, metadatas=metadatas)
-            logging.info(f"Added {file_path.name} ({len(chunks)} chunks)")
+            logger.info(f"Added {file_path.name} ({len(chunks)} chunks)")
             files_processed += 1
             
         except Exception as e:
-            logging.error(f"Error loading {file_path.name}: {str(e)}")
+            logger.error(f"Error loading {file_path.name}: {str(e)}")
     
     if files_processed == 0:
-        logging.info(f"No new documents to index in '{collection_name}'")
+        logger.info(f"No new documents to index in '{collection_name}'")
     else:
-        logging.info(f"Finished loading {files_processed} new documents into '{collection_name}'")
+        logger.info(f"Finished loading {files_processed} new documents into '{collection_name}'")
     
     return vectorstore
 
@@ -167,7 +163,7 @@ def query_vectorstore(collection_name: str, query_text: str, top_k: int = 3):
         results = vectorstore.similarity_search_with_score(query_text, k=top_k)
         return results
     except Exception as e:
-        logging.error(f"Error querying vectorstore: {str(e)}")
+        logger.error(f"Error querying vectorstore: {str(e)}")
         return None
 
 

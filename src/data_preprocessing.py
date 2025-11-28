@@ -5,10 +5,7 @@ from pypdf import PdfReader
 from docx import Document
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logger= logging.getLogger("data_preprocessing")
 
 def extract_text_from_pdf(pdf_path):
     """Extract text from a PDF file."""
@@ -47,7 +44,7 @@ def extract_text_from_doc(doc_path):
         
         return text
     except Exception as e:
-        logging.error(f"Error extracting text from DOC file using win32com: {str(e)}")
+        logger.error(f"Error extracting text from DOC file using win32com: {str(e)}")
         raise
     finally:
         # Uninitialize COM
@@ -72,14 +69,14 @@ def move_processed_files(source_folder: str, destination_folder: str):
             
             # If file exists in destination, skip it
             if dest_file.exists():
-                logging.info(f"File already exists in destination, skipping: {dest_file.name}")
+                logger.info(f"File already exists in destination, skipping: {dest_file.name}")
                 continue
             
             shutil.move(str(file_path), str(dest_file))
-            logging.info(f"Moved: {file_path.name} -> {dest_file}")
+            logger.info(f"Moved: {file_path.name} -> {dest_file}")
             moved_count += 1
     
-    logging.info(f"Total files moved: {moved_count}")
+    logger.info(f"Total files moved: {moved_count}")
     return moved_count
 
 
@@ -96,7 +93,7 @@ def process_documents(raw_folder: str, processed_folder: str, used_files_folder:
     processed_path.mkdir(parents=True, exist_ok=True)
     
     # Process all files
-    logging.info(f"{'='*10} Starting to process files in {raw_folder} {'='*10}")
+    logger.info(f"{'='*10} Starting to process files in {raw_folder} {'='*10}")
     for file_path in raw_path.iterdir():
         if file_path.is_file():
             # Normalize file name by converting to lowercase and replacing spaces with underscores
@@ -106,33 +103,33 @@ def process_documents(raw_folder: str, processed_folder: str, used_files_folder:
             try:
                 if file_path.suffix.lower() == '.pdf':
                     text = extract_text_from_pdf(file_path)
-                    logging.info(f"Processed PDF: {file_path.name}")
+                    logger.info(f"Processed PDF: {file_path.name}")
                     
                 elif file_path.suffix.lower() == '.docx':
                     text = extract_text_from_docx(file_path)
-                    logging.info(f"Processed DOCX: {file_path.name}")
+                    logger.info(f"Processed DOCX: {file_path.name}")
                     
                 elif file_path.suffix.lower() == '.doc':
                     text = extract_text_from_doc(file_path)
-                    logging.info(f"Processed DOC: {file_path.name}")
+                    logger.info(f"Processed DOC: {file_path.name}")
                 else:
-                    logging.info(f"Skipped unsupported file: {file_path.name}")
+                    logger.info(f"Skipped unsupported file: {file_path.name}")
                     continue
                 
                 # Write to text file
                 with open(output_file, 'w', encoding='utf-8') as f:
                     f.write(text)
                     
-                logging.info(f"Saved to: {output_file.name}\n")
+                logger.info(f"Saved to: {output_file.name}\n")
                 
             except Exception as e:
-                logging.error(f"Error processing {file_path.name}: {str(e)}")
+                logger.error(f"Error processing {file_path.name}: {str(e)}")
 
-    logging.info(f"{'='*10} Finished processing files in {raw_folder} {'='*10}")
+    logger.info(f"{'='*10} Finished processing files in {raw_folder} {'='*10}")
     
     # Move processed files to used_files folder if specified
     if used_files_folder:
-        logging.info(f"\n{'='*10} Moving processed files to {used_files_folder} {'='*10}")
+        logger.info(f"\n{'='*10} Moving processed files to {used_files_folder} {'='*10}")
         move_processed_files(raw_folder, used_files_folder)
         
 if __name__ == "__main__":
@@ -146,9 +143,9 @@ if __name__ == "__main__":
         
         # Check if the raw folder exists before processing
         if Path(raw_folder).exists():
-            logging.info(f"\n{'#'*50}")
-            logging.info(f"Processing subfolder: {files}")
-            logging.info(f"{'#'*50}\n")
+            logger.info(f"\n{'#'*50}")
+            logger.info(f"Processing subfolder: {files}")
+            logger.info(f"{'#'*50}\n")
             process_documents(raw_folder, processed_folder, used_files_folder)
         else:
-            logging.warning(f"Folder does not exist: {raw_folder}")
+            logger.warning(f"Folder does not exist: {raw_folder}")

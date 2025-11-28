@@ -1,9 +1,14 @@
+asyncpg
 langchain
 langchain_text_splitters
 langchain-chroma
 langchain-community
 langchain-huggingface
 langchain-groq
+langchain_core
+langgraph-checkpoint-postgres
+psycopg-pool
+psycopg-binary
 sentence-transformers
 chainlit
 pypdf
@@ -13,3 +18,4 @@ streamlit
 chromadb
 pywin32
 python-dotenv
+langchain_google_genai

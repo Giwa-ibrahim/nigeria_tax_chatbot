@@ -9,15 +9,12 @@ from langchain_groq import ChatGroq
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logger= logging.getLogger("llm")
 
 class LLMManager:
     """
-    Manages LLM instances with automatic fallback from Gemini to Groq.
-    Uses Gemini (free) as the primary model and falls back to Groq if Gemini fails.
+    Manages LLM instances with automatic fallback from Groq to Gemini.
+    Uses Groq as the primary model and falls back to Gemini if Groq fails.
     """
     
     def __init__(
@@ -50,17 +47,14 @@ class LLMManager:
         self.active_model = None
         self.current_llm = None
         
-        # Log configuration
-        logging.info(f"LLM Configuration: Gemini={self.gemini_model}, Groq={self.groq_model}, Temperature={self.temperature}")
-        
     def _initialize_gemini(self) -> Optional[ChatGoogleGenerativeAI]:
         """Initialize Gemini LLM."""
         try:
             if not self.gemini_api_key:
-                logging.warning("GOOGLE_API_KEY not found in environment variables")
+                logger.warning("GOOGLE_API_KEY not found in environment variables")
                 return None
             
-            logging.info(f"Initializing Gemini model: {self.gemini_model}")
+            logger.info(f"Initializing Gemini model: {self.gemini_model}")
             
             llm = ChatGoogleGenerativeAI(
                 model=self.gemini_model,
@@ -71,21 +65,21 @@ class LLMManager:
                     
             # Test the connection with a simple query
             test_response = llm.invoke("Hi")
-            logging.info("✅ Gemini model initialized successfully")
+            logger.info("✅ Gemini model initialized successfully")
             return llm
             
         except Exception as e:
-            logging.error(f"❌ Failed to initialize Gemini: {str(e)}")
+            logger.error(f"❌ Failed to initialize Gemini: {str(e)}")
             return None
     
     def _initialize_groq(self) -> Optional[ChatGroq]:
-        """Initialize Groq LLM as fallback."""
+        """Initialize Groq LLM."""
         try:
             if not self.groq_api_key:
-                logging.warning("GROQ_API_KEY not found in environment variables")
+                logger.warning("GROQ_API_KEY not found in environment variables")
                 return None
             
-            logging.info(f"Initializing Groq model: {self.groq_model}")
+            logger.info(f"Initializing Groq model: {self.groq_model}")
             
             llm = ChatGroq(
                 model=self.groq_model,
@@ -96,11 +90,11 @@ class LLMManager:
             
             # Test the connection with a simple query
             test_response = llm.invoke("Hi")
-            logging.info("✅ Groq model initialized successfully")
+            logger.info("✅ Groq model initialized successfully")
             return llm
             
         except Exception as e:
-            logging.error(f"❌ Failed to initialize Groq: {str(e)}")
+            logger.error(f"❌ Failed to initialize Groq: {str(e)}")
             return None
     
     def get_llm(self, force_fallback: bool = False):
@@ -108,38 +102,38 @@ class LLMManager:
         Get an LLM instance with automatic fallback.
         
         Args:
-            force_fallback: If True, skip Gemini and use Groq directly
+            force_fallback: If True, skip Groq and use Gemini directly
             
         Returns:
-            LLM instance (Gemini or Groq)
+            LLM instance (Groq or Gemini)
             
         Raises:
-            RuntimeError: If both Gemini and Groq fail to initialize
+            RuntimeError: If both Groq and Gemini fail to initialize
         """
         # If we already have a working LLM, return it
         if self.current_llm and not force_fallback:
             return self.current_llm
         
-        # Try Gemini first (unless forced to use fallback)
+        # Try Groq first (unless forced to use fallback)
         if not force_fallback:
-            gemini_llm = self._initialize_gemini()
-            if gemini_llm:
-                self.active_model = "gemini"
-                self.current_llm = gemini_llm
-                return gemini_llm
+            groq_llm = self._initialize_groq()
+            if groq_llm:
+                self.active_model = "groq"
+                self.current_llm = groq_llm
+                return groq_llm
             
-            logging.warning("⚠️ Gemini unavailable, falling back to Groq...")
+            logger.warning("⚠️ Groq unavailable, falling back to Gemini...")
         
-        # Fallback to Groq
-        groq_llm = self._initialize_groq()
-        if groq_llm:
-            self.active_model = "groq"
-            self.current_llm = groq_llm
-            return groq_llm
+        # Fallback to Gemini
+        gemini_llm = self._initialize_gemini()
+        if gemini_llm:
+            self.active_model = "gemini"
+            self.current_llm = gemini_llm
+            return gemini_llm
         
         # Both failed
         raise RuntimeError(
-            "❌ Both Gemini and Groq models failed to initialize. "
+            "❌ Both Groq and Gemini models failed to initialize. "
         )
     
     def invoke(self, prompt: str, force_fallback: bool = False):
@@ -155,20 +149,20 @@ class LLMManager:
         """
         try:
             llm = self.get_llm(force_fallback=force_fallback)
-            logging.info(f"Using {self.active_model.upper()} model for inference")
+            logger.info(f"Using {self.active_model.upper()} model for inference")
             response = llm.invoke(prompt)
             return response
             
         except Exception as e:
             # If Gemini fails during invocation, try Groq
             if self.active_model == "gemini" and not force_fallback:
-                logging.error(f"❌ Gemini invocation failed: {str(e)}")
-                logging.info("⚠️ Attempting fallback to Groq...")
+                logger.error(f"❌ Gemini invocation failed: {str(e)}")
+                logger.info("⚠️ Attempting fallback to Groq...")
                 
                 try:
                     return self.invoke(prompt, force_fallback=True)
                 except Exception as groq_error:
-                    logging.error(f"❌ Groq fallback also failed: {str(groq_error)}")
+                    logger.error(f"❌ Groq fallback also failed: {str(groq_error)}")
                     raise RuntimeError(f"Both models failed. Gemini: {str(e)}, Groq: {str(groq_error)}")
             else:
                 raise
@@ -241,9 +235,9 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {str(e)}")
     
-    # Example 3: Force using Groq (fallback)
+    # Example 3: Force using Gemini (fallback)
     print("="*50)
-    print("Example 3: Forcing Groq fallback")
+    print("Example 3: Forcing Gemini fallback")
     print("="*50)
     
     try:
