@@ -27,8 +27,8 @@ from agentic_rag import main_agent
 async def start():
     """Welcome message when chat starts."""
     await cl.Message(
-        content="👋 **Welcome to the Nigerian Tax Assistant!**\n\n"
-                "I can help you with:\n"
+        content="👋 **Welcome to the Nigerian Smart AI Tax Assistant!**\n\n"
+                "I can help you understand:\n"
                 "- 📋 Tax policies and regulations\n"
                 "- 💰 PAYE calculations\n"
                 "- 🎯 Tax reliefs and exemptions\n\n"
