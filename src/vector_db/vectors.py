@@ -5,7 +5,7 @@ from pathlib import Path
 import logging
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
-from embeddings import get_embeddings
+from src.vector_db.embeddings import get_embeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Load environment variables

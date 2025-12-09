@@ -1,4 +1,4 @@
-asyncpg
+asyncpg>=0.29.0
 langchain
 langchain_text_splitters
 langchain-chroma
@@ -6,6 +6,7 @@ langchain-community
 langchain-huggingface
 langchain-groq
 langchain_core
+langgraph>=0.2.0
 langgraph-checkpoint-postgres
 psycopg-pool
 psycopg-binary
@@ -18,4 +19,5 @@ streamlit
 chromadb
 pywin32
 python-dotenv
+tavily-python
 langchain_google_genai

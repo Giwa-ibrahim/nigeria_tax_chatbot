@@ -1,12 +1,8 @@
-import os
 import logging
 from typing import Optional
-from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
-
-# Load environment variables
-load_dotenv()
+from src.configurations.config import settings
 
 # Configure logging
 logger= logging.getLogger("llm")
@@ -17,31 +13,18 @@ class LLMManager:
     Uses Groq as the primary model and falls back to Gemini if Groq fails.
     """
     
-    def __init__(
-        self,
-        gemini_model: Optional[str] = None,
-        groq_model: Optional[str] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None
-    ):
+    def __init__(self):
         """
         Initialize the LLM Manager.
-        
-        Args:
-            gemini_model: Gemini model name
-            groq_model: Groq model name
-            temperature: Temperature for response generation
-            max_tokens: Maximum tokens in response
         """
-        # Read from environment variables with fallbacks
-        self.gemini_model = os.getenv("GEMINI_MODEL")
-        self.groq_model = os.getenv("GROQ_MODEL")
-        self.temperature = float(os.getenv("TEMPERATURE"))
-        self.max_tokens = int(os.getenv("MAX_TOKENS"))
+        self.gemini_model = settings.GEMINI_MODEL
+        self.groq_model = settings.GROQ_MODEL
+        self.temperature = settings.TEMPERATURE
+        self.max_tokens = settings.MAX_TOKENS
         
-        # Get API keys from environment
-        self.gemini_api_key = os.getenv("GOOGLE_API_KEY")
-        self.groq_api_key = os.getenv("GROQ_API_KEY")
+        # Get API keys from settings
+        self.gemini_api_key = settings.GOOGLE_API_KEY
+        self.groq_api_key = settings.GROQ_API_KEY
         
         # Track which model is currently active
         self.active_model = None
@@ -174,20 +157,20 @@ class LLMManager:
 
 # Convenience function for quick usage
 def get_llm(
-    gemini_model: Optional[str] = os.getenv("GEMINI_MODEL"),
-    groq_model: Optional[str] = os.getenv("GROQ_MODEL"),
-    temperature: Optional[float] = os.getenv("TEMPERATURE"),
-    max_tokens: Optional[int] = os.getenv("MAX_TOKENS"),
+    gemini_model: Optional[str] = None,
+    groq_model: Optional[str] = None,
+    temperature: Optional[float] = None,
+    max_tokens: Optional[int] = None,
     force_fallback: bool = False
 ):
     """
     Quick function to get an LLM instance with fallback support.
     
     Args:
-        gemini_model: Gemini model name
-        groq_model: Groq model name (default: from .env or llama-3.1-70b-versatile)
-        temperature: Temperature for response generation (default: from .env or 0.7)
-        max_tokens: Maximum tokens in response
+        gemini_model: Gemini model name (default: from settings)
+        groq_model: Groq model name (default: from settings)
+        temperature: Temperature for response generation (default: from settings)
+        max_tokens: Maximum tokens in response (default: from settings)
         force_fallback: If True, skip Gemini and use Groq directly
         
     Returns:
@@ -207,42 +190,42 @@ def get_llm(
     return manager.get_llm(force_fallback=force_fallback)
 
 
-# Example usage
-if __name__ == "__main__":
-    # Example 1: Using LLMManager class
-    print("="*50)
-    print("Example 1: Using LLMManager")
-    print("="*50)
+# # Example usage
+# if __name__ == "__main__":
+#     # Example 1: Using LLMManager class
+#     print("="*50)
+#     print("Example 1: Using LLMManager")
+#     print("="*50)
     
-    manager = LLMManager(temperature=0.7)
+#     manager = LLMManager(temperature=0.7)
     
-    try:
-        response = manager.invoke("What is PAYE tax in Nigeria?")
-        print(f"\nActive Model: {manager.get_active_model()}")
-        print(f"Response: {response.content}\n")
-    except Exception as e:
-        print(f"Error: {str(e)}")
+#     try:
+#         response = manager.invoke("What is PAYE tax in Nigeria?")
+#         print(f"\nActive Model: {manager.get_active_model()}")
+#         print(f"Response: {response.content}\n")
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
     
-    # Example 2: Using convenience function
-    print("="*50)
-    print("Example 2: Using convenience function")
-    print("="*50)
+#     # Example 2: Using convenience function
+#     print("="*50)
+#     print("Example 2: Using convenience function")
+#     print("="*50)
     
-    try:
-        llm = get_llm(temperature=0.5)
-        response = llm.invoke("Explain VAT in simple terms")
-        print(f"Response: {response.content}\n")
-    except Exception as e:
-        print(f"Error: {str(e)}")
+#     try:
+#         llm = get_llm(temperature=0.5)
+#         response = llm.invoke("Explain VAT in simple terms")
+#         print(f"Response: {response.content}\n")
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
     
-    # Example 3: Force using Gemini (fallback)
-    print("="*50)
-    print("Example 3: Forcing Gemini fallback")
-    print("="*50)
+#     # Example 3: Force using Gemini (fallback)
+#     print("="*50)
+#     print("Example 3: Forcing Gemini fallback")
+#     print("="*50)
     
-    try:
-        llm = get_llm(force_fallback=True)
-        response = llm.invoke("What is tax policy?")
-        print(f"Response: {response.content}\n")
-    except Exception as e:
-        print(f"Error: {str(e)}")
+#     try:
+#         llm = get_llm(force_fallback=True)
+#         response = llm.invoke("What is tax policy?")
+#         print(f"Response: {response.content}\n")
+#     except Exception as e:
+#         print(f"Error: {str(e)}")

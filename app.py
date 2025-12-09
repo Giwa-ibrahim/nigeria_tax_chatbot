@@ -1,27 +1,18 @@
-import sys
+import chainlit as cl
+from src.agent.main_agent import main_agent
+import logging, sys
 import asyncio
 
 # Fix for Windows: Set event loop policy BEFORE any imports
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     print("✅ Windows event loop policy set to WindowsSelectorEventLoopPolicy")
-
-# Configure logging to show module names
-import logging
+    
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
-
-# Now import and run the app
-import chainlit as cl
-import os
-
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
-from agentic_rag import main_agent
-
+logger= logging.getLogger("chainlit_app")
 
 @cl.on_chat_start
 async def start():

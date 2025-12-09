@@ -4,10 +4,7 @@ Run this once to create the necessary tables in PostgreSQL.
 """
 import asyncio
 import asyncpg
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from src.configurations.config import settings
 
 # SQL to create Chainlit tables
 CREATE_TABLES_SQL = """
@@ -80,7 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_user_identifier ON "User"(identifier);
 
 async def init_database():
     """Initialize Chainlit database tables."""
-    db_url = os.getenv("DATABASE_URL")
+    db_url = settings.DATABASE_URL
     
     if not db_url:
         print("❌ DATABASE_URL not found in .env file")

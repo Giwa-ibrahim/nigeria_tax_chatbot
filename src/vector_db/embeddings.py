@@ -1,10 +1,8 @@
 from langchain_huggingface import HuggingFaceEmbeddings
-from dotenv import load_dotenv
-import os
 import logging
+from src.configurations.config import settings
 
-logger= logging.getLogger("embeddings")
-load_dotenv()
+logger = logging.getLogger("embeddings")
 
 def get_embeddings():
     """
@@ -13,7 +11,7 @@ def get_embeddings():
     Perfect for deployment - no separate server required!
     """
     try:
-        model_name = os.getenv("HUGGINGFACE_EMBED_MODEL")
+        model_name = settings.HUGGINGFACE_EMBED_MODEL
         logger.info(f"Initializing HuggingFace embeddings ({model_name})...")
         
         embeddings = HuggingFaceEmbeddings(
