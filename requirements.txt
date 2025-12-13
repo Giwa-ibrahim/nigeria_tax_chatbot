@@ -1,4 +1,4 @@
-asyncpg>=0.29.0
+asyncpg
 langchain
 langchain_text_splitters
 langchain-chroma
@@ -6,7 +6,8 @@ langchain-community
 langchain-huggingface
 langchain-groq
 langchain_core
-langgraph>=0.2.0
+langchain-tavily
+langgraph
 langgraph-checkpoint-postgres
 psycopg-pool
 psycopg-binary

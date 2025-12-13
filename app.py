@@ -42,8 +42,9 @@ async def main(message: cl.Message):
         # Use Chainlit's thread_id for conversation memory (persists across messages)
         thread_id = cl.context.session.thread_id
         
-        # Call the main agent
+        # Call the main agent (user_id is now first parameter)
         result = await main_agent(
+            user_id=user_id,  # First parameter (required)
             query=user_query,
             return_sources=False,
             thread_id=thread_id

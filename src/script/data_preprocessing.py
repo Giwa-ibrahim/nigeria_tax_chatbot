@@ -1,3 +1,8 @@
+"""
+Run this script whenever you have new files in raw folder: 
+python src\script\data_preprocessing.py  
+"""
+
 import os
 import shutil
 from pathlib import Path
@@ -138,7 +143,7 @@ if __name__ == "__main__":
     
     for files in subfolders:
         raw_folder = f"dataset/raw_data/new_raw_files/{files}"
-        processed_folder = f"dataset/processed_data/{files}"
+        processed_folder = f"dataset/processed_data/not_processed/{files}"
         used_files_folder = f"dataset/raw_data/used_files/{files}"
         
         # Check if the raw folder exists before processing

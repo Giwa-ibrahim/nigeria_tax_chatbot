@@ -1,3 +1,8 @@
+"""
+Run this command to embed new document to the Chromadb:
+python -m src.vector_db.vectors
+"""
+
 import sys
 import os
 import chromadb
@@ -146,6 +151,15 @@ def load_policy_documents(processed_folder: str = "dataset/processed_data/tax_po
     )
 
 
+def load_leftover_policy_documents(processed_folder: str = "dataset/processed_data/tax_policy/not_processed", force_reindex: bool = False):
+    """Load not yet processed tax policy documents into ChromaDB."""
+    return load_documents_to_vectorstore(
+        collection_name="tax_documents",
+        folder_path=processed_folder,
+        document_type="tax_policy",
+        force_reindex=force_reindex
+    )
+
 def load_paye_documents(paye_folder: str = "dataset/processed_data/paye_calc", force_reindex: bool = False):
     """Load PAYE calculation documents into ChromaDB."""
     return load_documents_to_vectorstore(
@@ -176,34 +190,36 @@ if __name__ == "__main__":
     print("="*60)
     
     # Load tax policy documents
-    load_policy_documents(force_reindex=force_reindex)
+    load_leftover_policy_documents(force_reindex=force_reindex) # Comment this if you want to load "not yet processed" documents
     
-    print("\n" + "="*60)
-    print("Loading PAYE Calculation Documents")
-    print("="*60)
+    # load_policy_documents(force_reindex=force_reindex) 
     
-    # Load PAYE documents
-    load_paye_documents(force_reindex=force_reindex)
+    # print("\n" + "="*60)
+    # print("Loading PAYE Calculation Documents")
+    # print("="*60)
     
-    # Test queries
-    print("\n" + "="*60)
-    print("Testing Tax Policy Query")
-    print("="*60)
-    results = query_vectorstore("tax_documents", "What are the tax exemptions for individuals?")
-    if results:
-        print(f"Found {len(results)} relevant chunks\n")
-        for i, (doc, score) in enumerate(results):
-            print(f"Result {i+1} (score: {score:.4f}):")
-            print(f"Source: {doc.metadata['source']}")
-            print(f"Text: {doc.page_content[:200]}...\n")
+    # # Load PAYE documents
+    # load_paye_documents(force_reindex=force_reindex)
     
-    print("\n" + "="*60)
-    print("Testing PAYE Query")
-    print("="*60)
-    results = query_vectorstore("paye_calculations", "How is PAYE calculated?")
-    if results:
-        print(f"Found {len(results)} relevant chunks\n")
-        for i, (doc, score) in enumerate(results):
-            print(f"Result {i+1} (score: {score:.4f}):")
-            print(f"Source: {doc.metadata['source']}")
-            print(f"Text: {doc.page_content[:200]}...\n")
+    # # Test queries
+    # print("\n" + "="*60)
+    # print("Testing Tax Policy Query")
+    # print("="*60)
+    # results = query_vectorstore("tax_documents", "What are the tax exemptions for individuals?")
+    # if results:
+    #     print(f"Found {len(results)} relevant chunks\n")
+    #     for i, (doc, score) in enumerate(results):
+    #         print(f"Result {i+1} (score: {score:.4f}):")
+    #         print(f"Source: {doc.metadata['source']}")
+    #         print(f"Text: {doc.page_content[:200]}...\n")
+    
+    # print("\n" + "="*60)
+    # print("Testing PAYE Query")
+    # print("="*60)
+    # results = query_vectorstore("paye_calculations", "How is PAYE calculated?")
+    # if results:
+    #     print(f"Found {len(results)} relevant chunks\n")
+    #     for i, (doc, score) in enumerate(results):
+    #         print(f"Result {i+1} (score: {score:.4f}):")
+    #         print(f"Source: {doc.metadata['source']}")
+    #         print(f"Text: {doc.page_content[:200]}...\n")
