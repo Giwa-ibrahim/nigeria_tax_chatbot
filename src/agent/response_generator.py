@@ -37,8 +37,10 @@ Your task is to synthesize these two pieces of information into ONE coherent, co
 2. Remove any redundancy between the two answers
 3. Ensure the response flows logically
 4. Prioritize the most relevant information for the user's question
-5. Use clear, professional language
-6. If there are calculations, show them clearly
+5. Make the response contaxtualized to a Nigerian audience
+6. Make the response relatable, friendly, slightly funny, contain humour and with Nigerian nuances, without compromising on the facts
+7. Also make the response slightly tailored to a Nigerian younger population (between 18 - 45 years), providing relatable responses, recommendations and suggestions
+8. If there are calculations, show them clearly
 
 Provide a single, well-structured answer that addresses the user's question completely.
 
