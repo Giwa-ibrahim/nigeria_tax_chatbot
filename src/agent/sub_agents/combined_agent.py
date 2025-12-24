@@ -10,32 +10,54 @@ logger = logging.getLogger("combined_agent")
 async def combined_agent(state: AgentState) -> AgentState:
     """
     Combined Agent - Queries both collections for complex questions.
-    Enriched with web search for latest updates.
+    Uses parallel search: RAG for detailed knowledge + Web for latest updates.
     """
     logger.info("🔄 Combined Agent processing...")
     
     query = state["query"]
     
-    # Search the web for latest information
+    # Parallel search: Web search for latest info (runs independently)
     logger.info("🔍 Searching web for latest tax updates...")
     web_results = search_web(query, max_results=3)
     
-    # Prepare enriched query context if web results are available
-    enriched_query = query
-    if web_results:
-        enriched_query = f"{query}\n\nLatest official information:\n{web_results}"
-        logger.info("✅ Query enriched with web search results")
-    
-    # Query RAG for document-based context from both collections
+    # RAG search with ORIGINAL query (not enriched)
+    logger.info("📖 Querying knowledge base (both collections)...")
     result = query_rag(
-        user_query=enriched_query,
+        user_query=query,  # Use original query for accurate vector search
         collection_type="both",
         top_k=5,
         return_sources=True
     )
     
-    # Use the RAG answer directly (web context already integrated)
-    state["final_answer"] = result["answer"]
+    # Combine RAG answer with web results if available
+    if web_results:
+        # Let the LLM intelligently combine both sources
+        combined_context = f"""Based on the following information sources, provide a comprehensive and up-to-date answer:
+
+KNOWLEDGE BASE (Detailed Information):
+{result['answer']}
+
+LATEST UPDATES (From Official Sources):
+{web_results}
+
+USER QUESTION:
+{query}
+
+Combine both sources to give an accurate, up-to-date answer. Prioritize the latest information from official sources for current rates, dates, and regulations."""
+        
+        # Use LLM to synthesize both sources
+        from src.services.llm import LLMManager
+        llm_manager = LLMManager()
+        llm = llm_manager.get_llm()
+        response = llm.invoke(combined_context)
+        
+        state["final_answer"] = response.content
+        logger.info("✅ Combined RAG + Web results")
+    else:
+        # No web results, use RAG only
+        state["final_answer"] = result["answer"]
+        logger.info("ℹ️ Using RAG-only answer (no web results)")
+    
     state["sources"] = result.get("sources", [])
     state["model_used"] = result["model_used"]
     

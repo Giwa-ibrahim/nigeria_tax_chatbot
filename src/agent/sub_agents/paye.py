@@ -10,33 +10,55 @@ logger = logging.getLogger("paye_agent")
 async def paye_calculation_agent(state: AgentState) -> AgentState:
     """
     PAYE Calculation Agent - Handles PAYE-specific questions.
-    Enriched with web search for latest updates.
+    Uses parallel search: RAG for detailed knowledge + Web for latest updates.
     """
     logger.info("💰 PAYE Calculation Agent processing...")
     
     query = state["query"]
     
-    # Search the web for latest PAYE information
+    # Parallel search: Web search for latest info (runs independently)
     logger.info("🔍 Searching web for latest PAYE updates...")
     web_results = search_web(query, max_results=3)
     
-    # Prepare enriched query context if web results are available
-    enriched_query = query
-    if web_results:
-        enriched_query = f"{query}\n\nLatest official information:\n{web_results}"
-        logger.info("✅ Query enriched with web search results")
-    
-    # Query RAG for document-based context
+    # RAG search with ORIGINAL query (not enriched)
+    logger.info("📖 Querying knowledge base...")
     result = query_rag(
-        user_query=enriched_query,
+        user_query=query,  # Use original query for accurate vector search
         collection_type="paye",
         top_k=3,
         return_sources=True,
         chat_history=format_chat_history(state.get("messages", []))
     )
     
-    # Use the RAG answer directly (web context already integrated)
-    state["paye_answer"] = result["answer"]
+    # Combine RAG answer with web results if available
+    if web_results:
+        # Let the LLM intelligently combine both sources
+        combined_context = f"""Based on the following information sources, provide a comprehensive and up-to-date answer:
+
+KNOWLEDGE BASE (Detailed Information):
+{result['answer']}
+
+LATEST UPDATES (From Official Sources):
+{web_results}
+
+USER QUESTION:
+{query}
+
+Combine both sources to give an accurate, up-to-date answer. Prioritize the latest information from official sources for current rates, dates, and regulations."""
+        
+        # Use LLM to synthesize both sources
+        from src.services.llm import LLMManager
+        llm_manager = LLMManager()
+        llm = llm_manager.get_llm()
+        response = llm.invoke(combined_context)
+        
+        state["paye_answer"] = response.content
+        logger.info("✅ Combined RAG + Web results")
+    else:
+        # No web results, use RAG only
+        state["paye_answer"] = result["answer"]
+        logger.info("ℹ️ Using RAG-only answer (no web results)")
+    
     state["model_used"] = result["model_used"]
     
     # Add sources if not already present
