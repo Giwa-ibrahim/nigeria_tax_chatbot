@@ -54,7 +54,7 @@ ROUTE:"""
             logger.warning(f"Invalid route '{route}', defaulting to 'both'")
             route = "both"
         
-        state["route"] = route
+        state["route"] = route      
         logger.info(f"🔀 Query routed to: {route.upper()}")
         
     except Exception as e:

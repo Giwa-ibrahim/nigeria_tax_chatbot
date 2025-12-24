@@ -1,14 +1,9 @@
 import asyncio
 import logging
 import sys
+from typing import Optional
 from src.agent.graph_builder.agent_state import AgentState
 from src.agent.graph_builder.compiled_agent import get_compiled_agent, close_checkpointer
-
-# Configure logging
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format="%(asctime)s - %(levelname)s - %(message)s"
-# )
 
 logger = logging.getLogger("main_agent")
 

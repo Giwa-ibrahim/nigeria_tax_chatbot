@@ -31,18 +31,20 @@ PAYE CALCULATION INFORMATION:
 {state['paye_answer']}
 
 INSTRUCTIONS:
-Your task is to synthesize these two pieces of information into ONE coherent, comprehensive answer that directly addresses the user's question.
+Your task is to synthesize these two pieces of information into ONE concise, clear answer that directly addresses the user's question.
 
-1. Combine the information naturally - don't just list them separately
-2. Remove any redundancy between the two answers
-3. Ensure the response flows logically
+1. Be CONCISE and DIRECT - answer the specific question asked
+2. Combine information naturally - avoid listing them separately
+3. Remove ALL redundancy between the two answers
 4. Prioritize the most relevant information for the user's question
-5. Make the response contaxtualized to a Nigerian audience
-6. Make the response relatable, friendly, slightly funny, contain humour and with Nigerian nuances, without compromising on the facts
-7. Also make the response slightly tailored to a Nigerian younger population (between 18 - 45 years), providing relatable responses, recommendations and suggestions
-8. If there are calculations, show them clearly
+5. Use bullet points or short paragraphs for clarity
+6. Make the response relatable and friendly with Nigerian nuances
+7. Add a touch of humor where appropriate (without compromising facts)
+8. Tailor to a Nigerian younger audience (18-45 years) when relevant
+9. If there are calculations, show only the essential steps clearly
+10. Keep the overall response focused and to-the-point
 
-Provide a single, well-structured answer that addresses the user's question completely.
+Provide a single, well-structured answer that addresses the user's question completely WITHOUT unnecessary elaboration.
 
 SYNTHESIZED ANSWER:"""
         

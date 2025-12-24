@@ -20,26 +20,22 @@ async def combined_agent(state: AgentState) -> AgentState:
     logger.info("🔍 Searching web for latest tax updates...")
     web_results = search_web(query, max_results=3)
     
+    # Prepare enriched query context if web results are available
+    enriched_query = query
+    if web_results:
+        enriched_query = f"{query}\n\nLatest official information:\n{web_results}"
+        logger.info("✅ Query enriched with web search results")
+    
     # Query RAG for document-based context from both collections
     result = query_rag(
-        user_query=query,
+        user_query=enriched_query,
         collection_type="both",
         top_k=5,
         return_sources=True
     )
     
-    # Enrich the rag result with web search context if available
-    if web_results:
-        enriched_answer = (
-            f"{result['answer']}\n\n"
-            f"**Latest Updates from Official Sources:**\n{web_results}"
-        )
-        state["final_answer"] = enriched_answer
-        logger.info("✅ RAG results enriched with web search")
-    else:
-        state["final_answer"] = result["answer"]
-        logger.info("ℹ️ Using RAG-only answer (no web results)")
-    
+    # Use the RAG answer directly (web context already integrated)
+    state["final_answer"] = result["answer"]
     state["sources"] = result.get("sources", [])
     state["model_used"] = result["model_used"]
     

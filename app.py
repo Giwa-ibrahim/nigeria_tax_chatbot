@@ -1,3 +1,8 @@
+"""
+To run the app, use this command:
+chainlit run app.py -w
+"""
+
 import chainlit as cl
 from src.agent.main_agent import main_agent
 import logging, sys
@@ -9,8 +14,7 @@ if sys.platform == "win32":
     print("✅ Windows event loop policy set to WindowsSelectorEventLoopPolicy")
     
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    level=logging.INFO
 )
 logger= logging.getLogger("chainlit_app")
 
@@ -44,10 +48,10 @@ async def main(message: cl.Message):
         
         # Call the main agent (user_id is now first parameter)
         result = await main_agent(
-            user_id=user_id,  # First parameter (required)
+            user_id="user_123",  # First parameter (required)
             query=user_query,
             return_sources=False,
-            thread_id=thread_id
+            thread_id="default"
         )
         
         # Format the response

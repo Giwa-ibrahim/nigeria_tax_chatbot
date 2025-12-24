@@ -1,6 +1,9 @@
 """
-To startup the Swagger UI, run this command:
-uvicorn src.main:app --reload
+To start the API server on port 8001:
+
+uvicorn src.main:app --reload --port 8080
+
+Reason: This runs on port 8080 to avoid conflict with Chainlit (port 8000)
 """
 
 import logging
@@ -14,12 +17,12 @@ from src.api.routes.chat_agent import router as chat_router
 from src.agent.graph_builder.compiled_agent import close_checkpointer
 from src.api.utilis.auth import endpoint_auth
 
-logger = logging.getLogger("api_app")
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger("fastapi_app")
 
 
-# ============================================================================
-# LIFESPAN CONTEXT MANAGER (Startup/Shutdown)
-# ============================================================================
+# Lifespan Context Manager (Startup/Shutdown)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,9 +44,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ Error during shutdown: {e}")
 
 
-# ============================================================================
-# CREATE FASTAPI APP
-# ============================================================================
+# Create FastAPI App
 
 app = FastAPI(
     title="Nigerian Tax Chatbot API",
@@ -59,10 +60,6 @@ app = FastAPI(
 )
 
 
-# ============================================================================
-# MIDDLEWARE
-# ============================================================================
-
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
@@ -73,16 +70,11 @@ app.add_middleware(
 )
 
 
-# ============================================================================
-# INCLUDE ROUTERS
-# ============================================================================
-
+# Include Routers
 app.include_router(chat_router, dependencies=[Depends(endpoint_auth)])
 
 
-# ============================================================================
-# ROOT ENDPOINT
-# ============================================================================
+# Root Endpoint
 
 @app.get("/", include_in_schema=False)
 async def root():
