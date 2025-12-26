@@ -1,5 +1,5 @@
 """
-To start the API server on port 8001:
+To start the API server:
 
 uvicorn src.main:app --reload --port 8080
 
