@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+
+# Testing
+tests/
+*.test.py
+.pytest_cache/
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker
+dockerfile
+docker-compose.yml
+.dockerignore
+
+# Dataset and Chroma DB (mounted as volumes in docker-compose)
+dataset/
+chroma_db/
+
+# Chainlit app (not needed for FastAPI deployment)
+app.py
+chainlit.md
+
+# other
+table.sql

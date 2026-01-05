@@ -1,0 +1,30 @@
+services:
+  # Tax Chatbot API Application
+  tax_chatbot:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: taxbot_api
+    env_file:
+      - env
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist vector database
+      - ./chroma_db:/app/chroma_db
+      # Persist dataset
+      - ./dataset:/app/dataset
+    
+    networks:
+      - taxbot_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  taxbot_network:
+    driver: bridge
