@@ -190,16 +190,16 @@ if __name__ == "__main__":
     print("="*60)
     
     # Load tax policy documents
-    load_leftover_policy_documents(force_reindex=force_reindex) # Comment this if you want to load "not yet processed" documents
+    #load_leftover_policy_documents(force_reindex=force_reindex) # Comment this if you want to load "not yet processed" documents
     
-    # load_policy_documents(force_reindex=force_reindex) 
+    load_policy_documents(force_reindex=force_reindex) 
     
-    # print("\n" + "="*60)
-    # print("Loading PAYE Calculation Documents")
-    # print("="*60)
+    print("\n" + "="*60)
+    print("Loading PAYE Calculation Documents")
+    print("="*60)
     
-    # # Load PAYE documents
-    # load_paye_documents(force_reindex=force_reindex)
+    # Load PAYE documents
+    load_paye_documents(force_reindex=force_reindex)
     
     # # Test queries
     # print("\n" + "="*60)

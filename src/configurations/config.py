@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     TEMPERATURE:float
     MAX_TOKENS:int
     HUGGINGFACE_EMBED_MODEL:str
+    OPENAI_API_KEY:str
+    OPENAI_EMBEDDING_NAME:str
     DATABASE_URL:str
     TAVILY_API_KEY:str
     YARN_API_KEY:str
