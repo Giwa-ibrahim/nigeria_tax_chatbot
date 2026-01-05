@@ -1,13 +1,13 @@
 services:
   # Tax Chatbot API Application
-  tax_chatbot:
+  api:
     build:
       context: .
       dockerfile: dockerfile
     container_name: taxbot_api
     env_file: .env
     ports:
-      - "8080:8080"
+      - "5000:8080"
     volumes:
       # Persist vector database
       - ./chroma_db:/app/chroma_db
@@ -17,7 +17,7 @@ services:
       - taxbot_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
