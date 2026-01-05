@@ -20,7 +20,7 @@ services:
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
       TEMPERATURE: ${TEMPERATURE:-0.3}
-      MAX_TOKENS: ${MAX_TOKENS:-8096}
+      MAX_TOKENS: ${MAX_TOKENS:-2048}
       HUGGINGFACE_EMBED_MODEL: ${HUGGINGFACE_EMBED_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
     ports:
       - "8080:8080"
