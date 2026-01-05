@@ -5,8 +5,7 @@ services:
       context: .
       dockerfile: dockerfile
     container_name: taxbot_api
-    env_file:
-      - env
+    env_file: .env
     ports:
       - "8080:8080"
     volumes:
@@ -14,7 +13,6 @@ services:
       - ./chroma_db:/app/chroma_db
       # Persist dataset
       - ./dataset:/app/dataset
-    
     networks:
       - taxbot_network
     restart: unless-stopped
