@@ -52,11 +52,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan,
-    contact={
-        "name": "Nigerian Tax Chatbot Team",
-        "email": "squidtech11@gmail.com"
-    }
+    lifespan=lifespan
 )
 
 
