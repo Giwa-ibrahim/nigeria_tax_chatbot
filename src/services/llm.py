@@ -1,6 +1,6 @@
 import logging
 from typing import Optional
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_cohere import ChatCohere
 from langchain_groq import ChatGroq
 from src.configurations.config import settings
 
@@ -9,50 +9,48 @@ logger= logging.getLogger("llm")
 
 class LLMManager:
     """
-    Manages LLM instances with automatic fallback from Groq to Gemini.
-    Uses Groq as the primary model and falls back to Gemini if Groq fails.
+    Manages LLM instances with automatic fallback from Groq to Cohere.
+    Uses Groq as the primary model and falls back to Cohere if Groq fails.
     """
     
     def __init__(self):
         """
         Initialize the LLM Manager.
         """
-        self.gemini_model = settings.GEMINI_MODEL
+        self.cohere_model = settings.COHERE_MODEL  # Cohere uses same model setting
         self.groq_model = settings.GROQ_MODEL
         self.temperature = settings.TEMPERATURE
         self.max_tokens = settings.MAX_TOKENS
         
         # Get API keys from settings
-        self.gemini_api_key = settings.GOOGLE_API_KEY
+        self.cohere_api_key = settings.COHERE_API_KEY
         self.groq_api_key = settings.GROQ_API_KEY
         
         # Track which model is currently active
         self.active_model = None
         self.current_llm = None
         
-    def _initialize_gemini(self) -> Optional[ChatGoogleGenerativeAI]:
-        """Initialize Gemini LLM."""
+    def _initialize_cohere(self) -> Optional[ChatCohere]:
+        """Initialize Cohere LLM."""
         try:
-            if not self.gemini_api_key:
-                logger.warning("GOOGLE_API_KEY not found in environment variables")
+            if not self.cohere_api_key:
+                logger.warning("COHERE_API_KEY not found in environment variables")
                 return None
             
-            logger.info(f"Initializing Gemini model: {self.gemini_model}")
+            logger.info(f"Initializing Cohere model")
             
-            llm = ChatGoogleGenerativeAI(
-                model=self.gemini_model,
-                google_api_key=self.gemini_api_key,
+            llm = ChatCohere(
+                model=self.cohere_model,
+                cohere_api_key=self.cohere_api_key,
                 temperature=self.temperature,
-                max_output_tokens=self.max_tokens
+                max_tokens=self.max_tokens
             )
-                    
-            # Test the connection with a simple query
-            test_response = llm.invoke("Hi")
-            logger.info("✅ Gemini model initialized successfully")
+            
+            logger.info("✅ Cohere model initialized successfully")
             return llm
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Gemini: {str(e)}")
+            logger.error(f"❌ Failed to initialize Cohere: {str(e)}")
             return None
     
     def _initialize_groq(self) -> Optional[ChatGroq]:
@@ -71,8 +69,6 @@ class LLMManager:
                 max_tokens=self.max_tokens
             )
             
-            # Test the connection with a simple query
-            test_response = llm.invoke("Hi")
             logger.info("✅ Groq model initialized successfully")
             return llm
             
@@ -85,13 +81,13 @@ class LLMManager:
         Get an LLM instance with automatic fallback.
         
         Args:
-            force_fallback: If True, skip Groq and use Gemini directly
+            force_fallback: If True, skip Groq and use Cohere directly
             
         Returns:
-            LLM instance (Groq or Gemini)
+            LLM instance (Groq or Cohere)
             
         Raises:
-            RuntimeError: If both Groq and Gemini fail to initialize
+            RuntimeError: If both Groq and Cohere fail to initialize
         """
         # If we already have a working LLM, return it
         if self.current_llm and not force_fallback:
@@ -105,18 +101,18 @@ class LLMManager:
                 self.current_llm = groq_llm
                 return groq_llm
             
-            logger.warning("⚠️ Groq unavailable, falling back to Gemini...")
+            logger.warning("⚠️ Groq unavailable, falling back to Cohere...")
         
-        # Fallback to Gemini
-        gemini_llm = self._initialize_gemini()
-        if gemini_llm:
-            self.active_model = "gemini"
-            self.current_llm = gemini_llm
-            return gemini_llm
+        # Fallback to Cohere
+        cohere_llm = self._initialize_cohere()
+        if cohere_llm:
+            self.active_model = "cohere"
+            self.current_llm = cohere_llm
+            return cohere_llm
         
         # Both failed
         raise RuntimeError(
-            "❌ Both Groq and Gemini models failed to initialize. "
+            "❌ Both Groq and Cohere models failed to initialize. "
         )
     
     def invoke(self, prompt: str, force_fallback: bool = False):
@@ -125,7 +121,7 @@ class LLMManager:
         
         Args:
             prompt: The prompt to send to the LLM
-            force_fallback: If True, skip Gemini and use Groq directly
+            force_fallback: If True, skip Groq and use Cohere directly
             
         Returns:
             LLM response
@@ -137,16 +133,16 @@ class LLMManager:
             return response
             
         except Exception as e:
-            # If Gemini fails during invocation, try Groq
-            if self.active_model == "gemini" and not force_fallback:
-                logger.error(f"❌ Gemini invocation failed: {str(e)}")
+            # If Cohere fails during invocation, try Groq
+            if self.active_model == "cohere" and not force_fallback:
+                logger.error(f"❌ Cohere invocation failed: {str(e)}")
                 logger.info("⚠️ Attempting fallback to Groq...")
                 
                 try:
                     return self.invoke(prompt, force_fallback=True)
                 except Exception as groq_error:
                     logger.error(f"❌ Groq fallback also failed: {str(groq_error)}")
-                    raise RuntimeError(f"Both models failed. Gemini: {str(e)}, Groq: {str(groq_error)}")
+                    raise RuntimeError(f"Both models failed. Cohere: {str(e)}, Groq: {str(groq_error)}")
             else:
                 raise
     
@@ -157,8 +153,6 @@ class LLMManager:
 
 # Convenience function for quick usage
 def get_llm(
-    gemini_model: Optional[str] = None,
-    groq_model: Optional[str] = None,
     temperature: Optional[float] = None,
     max_tokens: Optional[int] = None,
     force_fallback: bool = False
@@ -167,11 +161,9 @@ def get_llm(
     Quick function to get an LLM instance with fallback support.
     
     Args:
-        gemini_model: Gemini model name (default: from settings)
-        groq_model: Groq model name (default: from settings)
         temperature: Temperature for response generation (default: from settings)
         max_tokens: Maximum tokens in response (default: from settings)
-        force_fallback: If True, skip Gemini and use Groq directly
+        force_fallback: If True, skip Groq and use Cohere directly
         
     Returns:
         LLM instance
@@ -181,23 +173,18 @@ def get_llm(
         >>> response = llm.invoke("What is the capital of Nigeria?")
         >>> print(response.content)
     """
-    manager = LLMManager(
-        gemini_model=gemini_model,
-        groq_model=groq_model,
-        temperature=temperature,
-        max_tokens=max_tokens
-    )
+    manager = LLMManager()
     return manager.get_llm(force_fallback=force_fallback)
 
 
 # # Example usage
 # if __name__ == "__main__":
-#     # Example 1: Using LLMManager class
-#     print("="*50)
-#     print("Example 1: Using LLMManager")
-#     print("="*50)
+    # Example 1: Using LLMManager class
+    # print("="*50)
+    # print("Example 1: Using LLMManager")
+    # print("="*50)
     
-#     manager = LLMManager(temperature=0.7)
+    # manager = LLMManager(temperature=0.7)
     
 #     try:
 #         response = manager.invoke("What is PAYE tax in Nigeria?")
@@ -218,14 +205,14 @@ def get_llm(
 #     except Exception as e:
 #         print(f"Error: {str(e)}")
     
-#     # Example 3: Force using Gemini (fallback)
-#     print("="*50)
-#     print("Example 3: Forcing Gemini fallback")
-#     print("="*50)
+#     # Example 3: Force using Cohere (fallback)
+    # print("="*50)
+    # print("Example 3: Forcing Cohere fallback")
+    # print("="*50)
     
-#     try:
-#         llm = get_llm(force_fallback=True)
-#         response = llm.invoke("What is tax policy?")
-#         print(f"Response: {response.content}\n")
-#     except Exception as e:
-#         print(f"Error: {str(e)}")
+    # try:
+    #     llm = get_llm(force_fallback=True)
+    #     response = llm.invoke("What is tax policy?")
+    #     print(f"Response: {response.content}\n")
+    # except Exception as e:
+    #     print(f"Error: {str(e)}")

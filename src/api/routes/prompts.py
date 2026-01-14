@@ -25,7 +25,7 @@ class PromptsResponse(BaseModel):
 @router.get("/personalised_prompts", response_model=PromptsResponse)
 async def get_prompts(user_id: str) -> PromptsResponse:
     """
-    Get 8 example prompts for the chatbot.
+    Get 8 personalized prompts for querying the chatbot.
     
     **Query Parameters:**
     - user_id: User identifier (required)

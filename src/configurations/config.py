@@ -9,12 +9,11 @@ class Settings(BaseSettings):
     )
     
     GROQ_API_KEY:str
-    GOOGLE_API_KEY:str
     GROQ_MODEL:str
-    GEMINI_MODEL:str
+    COHERE_API_KEY:str
+    COHERE_MODEL:str
     TEMPERATURE:float
     MAX_TOKENS:int
-    COHERE_API_KEY:str
     DATABASE_URL:str
     TAVILY_API_KEY:str
     ENDPOINT_AUTH_KEY:str
