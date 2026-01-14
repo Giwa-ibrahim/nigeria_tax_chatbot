@@ -1,5 +1,6 @@
 import logging
 from src.agent.graph_builder.agent_state import AgentState
+from src.agent.utils import format_chat_history
 from src.services.llm import LLMManager
 
 logger = logging.getLogger("router")
@@ -7,34 +8,39 @@ logger = logging.getLogger("router")
 
 async def route_query(state: AgentState) -> AgentState:
     """
-    Use LLM to intelligently determine which agent(s) should handle the query.
-    
-    This is smarter than keyword matching - the LLM understands the semantic
-    meaning of the query and routes accordingly.
+    LLM-powered intelligent routing with conversation context awareness.
     """
     query = state["query"]
+    messages = state.get("messages", [])
+    last_route = state.get("route", None)
     
     logger.info(f"🤔 Analyzing query for routing...")
     
-    # Create routing prompt
-    routing_prompt = f"""You are a routing assistant for a Nigerian tax chatbot system.
+    # Format recent conversation context
+    chat_history = format_chat_history(messages[-4:]) if messages else "No previous conversation."
+    
+    routing_prompt = f"""You are an intelligent routing system for a Nigerian tax and financial chatbot.
 
-Analyze the user's query and determine which knowledge base(s) to search:
+CONVERSATION HISTORY:
+{chat_history}
 
-KNOWLEDGE BASES:
-1. "tax" - General tax policies, VAT, corporate tax, tax laws, regulations, exemptions, reliefs, penalties
-2. "paye" - PAYE (Pay As You Earn) calculations, salary tax, employee tax deductions, payroll tax
-3. "both" - Queries that need information from BOTH tax policy AND PAYE calculations
+LAST ROUTE USED: {last_route if last_route else "None (first message)"}
 
-USER QUERY:
+CURRENT USER QUERY:
 {query}
 
-INSTRUCTIONS:
-- Respond with ONLY one word: "tax", "paye", or "both"
-- Choose "tax" for general tax policy questions
-- Choose "paye" for PAYE calculation or salary-related tax questions
-- Choose "both" if the query needs information from both areas
-- If unsure, choose "both"
+AVAILABLE ROUTES:
+- "paye" → PAYE calculations, salary tax, employee deductions, payroll questions
+- "tax" → General tax policies, VAT, corporate tax, tax laws, regulations, reliefs
+- "financial" → Personal finance, investments, savings, budgeting, money management
+- "both" → Queries needing BOTH tax policy AND PAYE info (not financial)
+
+ROUTING INTELLIGENCE:
+1. **Context Continuity**: If user is answering questions or providing follow-up info related to the previous route topic, STAY in that route
+2. **Topic Detection**: Only switch routes when user asks about a clearly DIFFERENT topic
+3. **Completion Signals**: When user signals completion ("skip", "that's all", "done") on PAYE questions, route to "paye" to finalize
+
+Respond with ONLY ONE WORD: paye, tax, financial, or both
 
 ROUTE:"""
     
@@ -50,7 +56,7 @@ ROUTE:"""
         route = response.content.strip().lower()
         
         # Validate route
-        if route not in ["tax", "paye", "both"]:
+        if route not in ["tax", "paye", "both", "financial"]:
             logger.warning(f"Invalid route '{route}', defaulting to 'both'")
             route = "both"
         

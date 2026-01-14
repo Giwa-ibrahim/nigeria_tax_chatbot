@@ -8,6 +8,7 @@ import os
 import chromadb
 from pathlib import Path
 import logging
+import time
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from src.vector_db.embeddings import get_embeddings
@@ -17,10 +18,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 load_dotenv()
 
 logger= logging.getLogger("vectors")    
-# Initialize text splitter
+# Initialize text splitter with reduced chunk size for Cohere rate limits
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=800,
-    chunk_overlap=150,
+    chunk_size=500,  # Reduced to minimize token usage per request
+    chunk_overlap=50,  # Reduced overlap
     length_function=len,
     separators=["\n\n", "\n", " ", ""]
 )
@@ -56,7 +57,9 @@ def load_documents_to_vectorstore(
     collection_name: str,
     folder_path: str,
     document_type: str,
-    force_reindex: bool = False
+    force_reindex: bool = False,
+    delay_between_files: float = 2.0,
+    batch_size: int = 20
 ):
     """
     Generic function to load documents from a folder into a ChromaDB collection.
@@ -66,6 +69,8 @@ def load_documents_to_vectorstore(
         folder_path: Path to folder containing .txt files
         document_type: Type of documents (e.g., 'tax_policy', 'paye_calculation')
         force_reindex: If True, delete and recreate the collection
+        delay_between_files: Delay in seconds between processing files (helps with rate limits)
+        batch_size: Number of chunks to add at once before adding delay
     
     Returns:
         The vectorstore instance or None if failed
@@ -125,10 +130,26 @@ def load_documents_to_vectorstore(
                 for i in range(len(chunks))
             ]
             
-            # Add to vectorstore
-            vectorstore.add_texts(texts=chunks, metadatas=metadatas)
-            logger.info(f"Added {file_path.name} ({len(chunks)} chunks)")
+            # Process chunks in batches to avoid rate limits
+            total_chunks = len(chunks)
+            for i in range(0, total_chunks, batch_size):
+                batch_chunks = chunks[i:i + batch_size]
+                batch_metadatas = metadatas[i:i + batch_size]
+                
+                # Add batch to vectorstore
+                vectorstore.add_texts(texts=batch_chunks, metadatas=batch_metadatas)
+                
+                # Add delay between batches if not the last batch
+                if i + batch_size < total_chunks:
+                    logger.info(f"Processing {file_path.name}: {i + len(batch_chunks)}/{total_chunks} chunks...")
+                    time.sleep(1.5)  # Small delay between batches
+            
+            logger.info(f"✓ Added {file_path.name} ({total_chunks} chunks)")
             files_processed += 1
+            
+            # Add delay between files to respect rate limits
+            if delay_between_files > 0:
+                time.sleep(delay_between_files)
             
         except Exception as e:
             logger.error(f"Error loading {file_path.name}: {str(e)}")
@@ -201,25 +222,4 @@ if __name__ == "__main__":
     # Load PAYE documents
     load_paye_documents(force_reindex=force_reindex)
     
-    # # Test queries
-    # print("\n" + "="*60)
-    # print("Testing Tax Policy Query")
-    # print("="*60)
-    # results = query_vectorstore("tax_documents", "What are the tax exemptions for individuals?")
-    # if results:
-    #     print(f"Found {len(results)} relevant chunks\n")
-    #     for i, (doc, score) in enumerate(results):
-    #         print(f"Result {i+1} (score: {score:.4f}):")
-    #         print(f"Source: {doc.metadata['source']}")
-    #         print(f"Text: {doc.page_content[:200]}...\n")
     
-    # print("\n" + "="*60)
-    # print("Testing PAYE Query")
-    # print("="*60)
-    # results = query_vectorstore("paye_calculations", "How is PAYE calculated?")
-    # if results:
-    #     print(f"Found {len(results)} relevant chunks\n")
-    #     for i, (doc, score) in enumerate(results):
-    #         print(f"Result {i+1} (score: {score:.4f}):")
-    #         print(f"Source: {doc.metadata['source']}")
-    #         print(f"Text: {doc.page_content[:200]}...\n")

@@ -2,62 +2,31 @@ import logging
 from src.agent.graph_builder.agent_state import AgentState
 from src.tools.rag import query_rag
 from src.agent.utils import format_chat_history
-from src.tools.web_search import search_web
 
 logger = logging.getLogger("tax_policy_agent")
 
 
 async def tax_policy_agent(state: AgentState) -> AgentState:
     """
-    Tax Policy Agent - Handles general tax questions.
-    Uses parallel search: RAG for detailed knowledge + Web for latest updates.
+    Tax Policy Agent - Handles general tax questions using RAG.
     """
     logger.info("📚 Tax Policy Agent processing...")
     
     query = state["query"]
+    chat_history = format_chat_history(state.get("messages", []))
     
-    # Parallel search: Web search for latest info (runs independently)
-    logger.info("🔍 Searching web for latest tax policy updates...")
-    web_results = search_web(query, max_results=3)
-    
-    # RAG search with ORIGINAL query (not enriched)
+    # Query knowledge base
     logger.info("📖 Querying knowledge base...")
     result = query_rag(
-        user_query=query,  # Use original query for accurate vector search
+        user_query=query,
         collection_type="tax",
         top_k=3,
         return_sources=True,
-        chat_history=format_chat_history(state.get("messages", []))  
+        chat_history=chat_history
     )
     
-    # Combine RAG answer with web results if available
-    if web_results:
-        # Let the LLM intelligently combine both sources
-        combined_context = f"""Based on the following information sources, provide a comprehensive and up-to-date answer:
-
-KNOWLEDGE BASE (Detailed Information):
-{result['answer']}
-
-LATEST UPDATES (From Official Sources):
-{web_results}
-
-USER QUESTION:
-{query}
-
-Combine both sources to give an accurate, up-to-date answer. Prioritize the latest information from official sources for current rates, dates, and regulations."""
-        
-        # Use LLM to synthesize both sources
-        from src.services.llm import LLMManager
-        llm_manager = LLMManager()
-        llm = llm_manager.get_llm()
-        response = llm.invoke(combined_context)
-        
-        state["tax_answer"] = response.content
-        logger.info("✅ Combined RAG + Web results")
-    else:
-        # No web results, use RAG only
-        state["tax_answer"] = result["answer"]
-        logger.info("ℹ️ Using RAG-only answer (no web results)")
+    # Use RAG answer directly
+    state["tax_answer"] = result["answer"]
     
     state["model_used"] = result["model_used"]
     

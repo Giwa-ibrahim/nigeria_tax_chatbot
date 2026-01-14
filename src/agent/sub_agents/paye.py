@@ -3,61 +3,94 @@ from src.agent.graph_builder.agent_state import AgentState
 from src.tools.rag import query_rag
 from src.agent.utils import format_chat_history
 from src.tools.web_search import search_web
+from src.agent.meta_prompt import (
+    analyze_query_for_tax_calculation,
+    generate_clarification_request,
+    generate_conditional_answer,
+    create_engagement_response
+)
 
 logger = logging.getLogger("paye_agent")
 
 
 async def paye_calculation_agent(state: AgentState) -> AgentState:
     """
-    PAYE Calculation Agent - Handles PAYE-specific questions.
-    Uses parallel search: RAG for detailed knowledge + Web for latest updates.
+    PAYE Calculation Agent - Handles PAYE-specific questions with intelligent meta-prompting.
+    Uses meta-analysis to determine the best interaction approach:
+    - Friendly information collection for engaged users
+    - Conditional answers for impatient users
+    - Step-by-step guidance for learning-focused users
     """
     logger.info("💰 PAYE Calculation Agent processing...")
     
     query = state["query"]
+    chat_history = format_chat_history(state.get("messages", []))
     
-    # Parallel search: Web search for latest info (runs independently)
-    logger.info("🔍 Searching web for latest PAYE updates...")
-    web_results = search_web(query, max_results=3)
+    # META-PROMPTING: Analyze the query first
+    logger.info("🤔 Analyzing query to determine approach...")
+    meta_analysis = analyze_query_for_tax_calculation(query, chat_history)
     
-    # RAG search with ORIGINAL query (not enriched)
+    # DECISION TREE based on meta-analysis
+    approach = meta_analysis.get("approach", "direct")
+    user_mood = meta_analysis.get("user_mood", "neutral")
+    needs_clarification = meta_analysis.get("needs_clarification", False)
+    missing_info = meta_analysis.get("missing_info", [])
+    is_calculation_request = meta_analysis.get("is_calculation_request", False)
+    
+    logger.info(f"📊 Calc request: {is_calculation_request}, Approach: {approach}, Mood: {user_mood}, Needs info: {needs_clarification}")
+    
+    # If user wants calculation but missing deductions - DON'T search RAG yet, just ask for info
+    if is_calculation_request and needs_clarification and approach == "collect":
+        # FRIENDLY INFORMATION COLLECTION - Don't waste RAG/web search
+        logger.info("💬 User wants calculation but missing deductions - asking for info...")
+        clarification = generate_clarification_request(missing_info, user_mood, query)
+        
+        if clarification:
+            state["paye_answer"] = clarification
+            state["model_used"] = "meta_prompt"
+            logger.info("✅ PAYE Agent: Requested missing deduction info")
+            return state
+    
+    # Otherwise, proceed with RAG search (no web search for PAYE - faster)
     logger.info("📖 Querying knowledge base...")
     result = query_rag(
-        user_query=query,  # Use original query for accurate vector search
+        user_query=query,
         collection_type="paye",
         top_k=3,
         return_sources=True,
-        chat_history=format_chat_history(state.get("messages", []))
+        chat_history=chat_history
     )
     
-    # Combine RAG answer with web results if available
-    if web_results:
-        # Let the LLM intelligently combine both sources
-        combined_context = f"""Based on the following information sources, provide a comprehensive and up-to-date answer:
-
-KNOWLEDGE BASE (Detailed Information):
-{result['answer']}
-
-LATEST UPDATES (From Official Sources):
-{web_results}
-
-USER QUESTION:
-{query}
-
-Combine both sources to give an accurate, up-to-date answer. Prioritize the latest information from official sources for current rates, dates, and regulations."""
+    combined_context = result['answer']
+    
+    # Continue with decision tree
+    logger.info(f"📊 Approach: {approach}, Mood: {user_mood}")
+    
+    # Continue with decision tree for other cases
+    if approach == "collect" and needs_clarification and missing_info:
+        # This shouldn't trigger (handled above) but just in case
+        logger.info("💬 Generating clarification request...")
+        clarification = generate_clarification_request(missing_info, user_mood, query)
         
-        # Use LLM to synthesize both sources
-        from src.services.llm import LLMManager
-        llm_manager = LLMManager()
-        llm = llm_manager.get_llm()
-        response = llm.invoke(combined_context)
+        if clarification:
+            state["paye_answer"] = clarification
+        else:
+            state["paye_answer"] = create_engagement_response(query, combined_context, chat_history)
+            
+    elif approach == "conditional" and missing_info:
+        # CONDITIONAL ANSWER FOR IMPATIENT USERS
+        logger.info("⚡ Generating conditional answer for impatient user...")
+        state["paye_answer"] = generate_conditional_answer(query, missing_info, combined_context)
         
-        state["paye_answer"] = response.content
-        logger.info("✅ Combined RAG + Web results")
+    elif approach == "collect" and user_mood == "engaged":
+        # ENGAGEMENT MODE: Step-by-step educational response
+        logger.info("📚 Creating engaging educational response...")
+        state["paye_answer"] = create_engagement_response(query, combined_context, chat_history)
+        
     else:
-        # No web results, use RAG only
+        # DIRECT ANSWER: User has provided enough info or asking general question
+        logger.info("✅ Using direct RAG answer...")
         state["paye_answer"] = result["answer"]
-        logger.info("ℹ️ Using RAG-only answer (no web results)")
     
     state["model_used"] = result["model_used"]
     

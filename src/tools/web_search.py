@@ -84,7 +84,7 @@ def search_web(query: str, max_results: int = 3) -> str:
         "firs.gov.ng",
         "nigeriataxai.com",
         "jtb.gov.ng",
-        "noa.gov.ng"
+        "noa.gov.ng",
         "cbn.gov.ng",
         "cbn.gov.ng/FinInc/FinLit/"
     ]
@@ -99,14 +99,79 @@ def search_web(query: str, max_results: int = 3) -> str:
         if 'results' in response:
             filtered_results = [
                 result for result in response['results']
-                if any(domain in result.get("url") for domain in allowed_domains)
+                if any(domain in result.get("url", "") for domain in allowed_domains)
             ]
-        response['results']= filtered_results
-        logger.info(f"✅ Web search completed")
+            response['results'] = filtered_results
+            logger.info(f"✅ Web search completed - {len(filtered_results)} relevant results")
+        else:
+            logger.warning("No results found in response")
+            response['results'] = []
+        
         return format_results(response)
         
     except Exception as e:
         logger.error(f"Web search error: {e}")
+        return ""
+
+
+def search_financial_web(query: str, max_results: int = 5) -> str:
+    """
+    Search Nigerian financial advice websites using Tavily.
+    Focused on personal finance, investment, savings, and money management.
+    
+    Args:
+        query: Search query
+        max_results: Maximum results
+        
+    Returns:
+        Formatted search results from financial sites
+    """
+    if not settings.TAVILY_API_KEY:
+        logger.warning("TAVILY_API_KEY not set - financial web search disabled")
+        return ""
+    
+    # Define Nigerian financial websites
+    financial_domains = [
+        "nairametrics.com",
+        "africa.businessinsider.com",
+        "cowrywise.com",
+        "themoneyafrica.com",
+        "financialnigeria.com",
+        "piggyvest.com",
+        "risevest.com",
+        "trovefinance.com"
+    ]
+    
+    try:
+        # Create tool with financial domains
+        tool = TavilySearch(
+            max_results=max_results,
+            tavily_api_key=settings.TAVILY_API_KEY,
+            search_depth="advanced",
+            include_domains=financial_domains
+        )
+        
+        logger.info(f"🔍 Searching financial sites for: {query[:100]}...")
+        
+        # Invoke the tool
+        response = tool.invoke({"query": query})
+        
+        # Filter results by allowed domains (extra validation)
+        if 'results' in response:
+            filtered_results = [
+                result for result in response['results']
+                if any(domain in result.get("url", "") for domain in financial_domains)
+            ]
+            response['results'] = filtered_results
+            logger.info(f"✅ Financial web search completed - {len(filtered_results)} results")
+        else:
+            logger.warning("No financial results found in response")
+            response['results'] = []
+        
+        return format_results(response)
+        
+    except Exception as e:
+        logger.error(f"Financial web search error: {e}")
         return ""
 
 

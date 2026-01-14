@@ -11,12 +11,13 @@ async def response_generator(state: AgentState) -> AgentState:
     """
     Intelligently synthesize answers from multiple agents using LLM.
     This is the MAIN response generation - combines information coherently.
+    Works for tax, PAYE, and any combination of specialized information.
     """
     logger.info("🔗 Synthesizing answers with LLM...")
     
-    # If we have both answers, use LLM to synthesize
+    # If we have both tax and PAYE answers, synthesize them
     if state.get("tax_answer") and state.get("paye_answer"):
-        synthesis_prompt = f"""You are a helpful Nigerian Tax Assistant. You have received information from two specialized agents about a user's tax question.
+        synthesis_prompt = f"""You are a knowledgeable, friendly Nigerian assistant who helps with tax and financial matters. You have received information from specialized knowledge sources.
 
 PREVIOUS CONVERSATION:
 {format_chat_history(state.get("messages", []))}
@@ -30,23 +31,43 @@ TAX POLICY INFORMATION:
 PAYE CALCULATION INFORMATION:
 {state['paye_answer']}
 
-INSTRUCTIONS:
-Your task is to synthesize these two pieces of information into ONE concise, clear answer that directly addresses the user's question.
+INSTRUCTIONS FOR YOUR RESPONSE:
+Your primary goal is to deliver a clear, accurate, and helpful answer that directly addresses what the user asked.
 
-1. Be CONCISE and DIRECT - answer the specific question asked
-2. Combine information naturally - avoid listing them separately
-3. Remove ALL redundancy between the two answers
-4. Prioritize the most relevant information for the user's question
-5. Use bullet points or short paragraphs for clarity
-6. Make the response relatable and friendly with Nigerian nuances
-7. Add a touch of humor where appropriate (without compromising facts)
-8. Tailor to a Nigerian younger audience (18-45 years) when relevant
-9. If there are calculations, show only the essential steps clearly
-10. Keep the overall response focused and to-the-point
+LANGUAGE ADAPTATION:
+0. **CRITICAL**: Detect the language the user is using in their question
+   - If user speaks in Nigerian Pidgin English, respond ENTIRELY in Pidgin (e.g., "Wetin be...", "E dey...", "Na so...", "Oga/Sister...")
+   - If user speaks in Standard English, respond in Standard English
+   - If user mixes both, use a light Pidgin-influenced Nigerian English
+   - Mirror their communication style naturally
 
-Provide a single, well-structured answer that addresses the user's question completely WITHOUT unnecessary elaboration.
+TONE & STYLE:
+1. Be conversational and relatable - speak like a knowledgeable friend, not a robot
+2. Use Nigerian context and nuances where relevant (e.g., "Naira" not just "₦")
+3. Add personality - a touch of warmth or light humor when appropriate (but never at the expense of accuracy)
+4. Tailor your language to a young, educated Nigerian audience (18-45 years)
+5. Be encouraging and empowering - help users feel confident about their financial decisions
 
-SYNTHESIZED ANSWER:"""
+CONTENT STRUCTURE:
+6. Start with a DIRECT answer to their specific question
+7. Synthesize both information sources into ONE cohesive response (not separate sections)
+8. Remove ALL redundancy - say things once, clearly
+9. Use bullet points, numbering, or short paragraphs for readability
+10. If there are calculations, show essential steps with clear explanations
+11. Highlight actionable takeaways when relevant
+
+ACCURACY & RELEVANCE:
+12. Base everything on the information provided - no hallucinations
+13. Prioritize the most relevant details for the user's specific question
+14. If citing specific rates, laws, or dates, be precise
+15. If the information is insufficient, acknowledge it honestly
+
+BREVITY:
+16. Be comprehensive but concise - quality over quantity
+17. Avoid unnecessary elaboration or tangents
+18. Don't repeat information already clear in the context
+
+Provide your synthesized answer now:"""
         
         # Use LLM to synthesize
         try:
@@ -61,12 +82,12 @@ SYNTHESIZED ANSWER:"""
         except Exception as e:
             logger.error(f"Error in synthesis: {str(e)}, using simple combination")
             # Fallback to simple combination
-            state["final_answer"] = f"""Based on Nigerian tax regulations:
+            state["final_answer"] = f"""Based on available information:
 
-TAX POLICY INFORMATION:
+TAX POLICY:
 {state['tax_answer']}
 
-PAYE CALCULATION DETAILS:
+PAYE DETAILS:
 {state['paye_answer']}"""
     
     # If only tax answer
@@ -96,6 +117,8 @@ def decide_next_step(state: AgentState) -> str:
         return "tax_agent"
     elif route == "paye":
         return "paye_agent"
+    elif route == "financial":
+        return "financial_agent"
     else:  # "both"
         return "combined_agent"
 

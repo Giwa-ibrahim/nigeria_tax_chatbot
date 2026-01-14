@@ -24,9 +24,11 @@ COPY . .
 # Create a non-root user first
 RUN useradd -m -u 1000 appuser
 
-# Create necessary directories
-RUN mkdir -p chroma_db dataset/processed_data
+# Copy pre-built ChromaDB data (built locally)
+COPY ./chroma_db /app/chroma_db
 
+# Set ownership to appuser
+RUN chown -R appuser:appuser /app/chroma_db
 
 # Switch to non-root user
 USER appuser
@@ -36,11 +38,11 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 # Expose port for FastAPI
-EXPOSE 8080
+EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/ping || exit 1
+    CMD curl -f http://localhost:5000/ping || exit 1
 
 # Run the FastAPI application
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]

@@ -55,7 +55,6 @@ docker-compose.yml
 
 # Dataset and Chroma DB (mounted as volumes in docker-compose)
 dataset/
-chroma_db/
 
 # Chainlit app (not needed for FastAPI deployment)
 app.py

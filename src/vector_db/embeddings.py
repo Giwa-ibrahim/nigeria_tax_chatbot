@@ -1,14 +1,16 @@
-from langchain_openai import OpenAIEmbeddings
+from langchain_cohere import CohereEmbeddings
 from src.configurations.config import settings
 
 def get_embeddings():
     """
-    Get Embeddings
+    Get Embeddings - Optimized for Cohere rate limits
+    Using light model to reduce token usage and cost
     """
-    
-    embeddings = OpenAIEmbeddings(
-        model=settings.OPENAI_EMBEDDING_NAME,
-        openai_api_key=settings.OPENAI_API_KEY
+    embeddings = CohereEmbeddings(
+        model="embed-english-light-v3.0", 
+        cohere_api_key=settings.COHERE_API_KEY,
+        max_retries=5,  
+        request_timeout=120  
     )
     
     return embeddings

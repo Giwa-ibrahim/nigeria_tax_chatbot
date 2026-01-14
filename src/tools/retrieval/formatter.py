@@ -46,6 +46,20 @@ def create_prompt(query: str, context: str, chat_history: str) -> str:
         history_section = f"\nPREVIOUS CONVERSATION:\n{chat_history}\n"
     
     
+    # Detect if user is using Pidgin
+    pidgin_markers = ["wetin", "dey", "na so", "oga", "abeg", "don", "fit", "sabi", "wahala", "shey", "abi"]
+    is_pidgin = any(marker in query.lower() for marker in pidgin_markers)
+    
+    if is_pidgin:
+        language_instruction = """LANGUAGE: The user speaks Nigerian Pidgin English. Respond ENTIRELY in Pidgin. Use natural expressions like:
+- "Based on the document..." → "Based on wetin dem write..."
+- "The tax rate is..." → "The tax wey you go pay na..."
+- "You will pay..." → "You go pay..."
+- "It means..." → "E mean say..."
+Be natural and accurate in Pidgin."""
+    else:
+        language_instruction = "Use clear, professional Standard English with Nigerian context."
+    
     prompt = f"""You are a helpful Nigerian Tax Assistant. Use the following context from official tax documents to answer the user's question accurately and concisely.
 
 {history_section}
@@ -55,6 +69,8 @@ CONTEXT:
 
 USER QUESTION:
 {query}
+
+{language_instruction}
 
 INSTRUCTIONS:
 1. Answer based ONLY on the provided context

@@ -1,1 +1,153 @@
-PAYE Tax Calculation BreakdownNew Tax Law - Simple & Clear ExplanationAssuming my Income is 4 Million Naira per AnnumGross Annual Income: ₦4,000,000Chunk 1: ₦800,000    (tax-free portion)Chunk 2: ₦2,200,000  (next taxable portion)Chunk 3: ₦1,000,000  (remaining portion)         ───────────Total:   ₦4,000,000 ✓                    The Simple RuleThink of your income as water filling up different buckets. Each bucket has a different tax rate. You fill the first bucket completely before moving to the next one.Tax Calculation (Step by Step)Bucket 1: First ₦800,000Tax rate: 0% (COMPLETELY FREE!)Your income fills this bucket: ₦800,000Tax = ₦800,000 × 0% = ₦0✅ This entire amount is yours to keep - no tax at all!Bucket 2: Next ₦2,200,000Tax rate: 15%Your income fills this bucket: ₦2,200,000 (completely full)Tax = ₦2,200,000 × 15% = ₦330,000💡 Calculation: 2,200,000 ÷ 100 × 15 = 330,000Bucket 3: Next ₦9,000,000 (you partially fill this)Tax rate: 18%Your income fills this bucket: ₦1,000,000 (partially)Tax = ₦1,000,000 × 18% = ₦180,000💡 Calculation: 1,000,000 ÷ 100 × 18 = 180,000ℹ️ You don't earn enough to fill this bucket completelyTotal Annual TaxTax from Bucket 1: ₦0Tax from Bucket 2: ₦330,000Tax from Bucket 3: ₦180,000                    ─────────────Total:             ₦510,000                    Detailed Math BreakdownStep 1: Start with your income: ₦4,000,000 Step 2: First ₦800,000 is tax-freeRemaining = ₦4,000,000 - ₦800,000 = ₦3,200,000 Step 3: Next ₦2,200,000 is taxed at 15%Tax = ₦2,200,000 × 0.15 = ₦330,000Remaining = ₦3,200,000 - ₦2,200,000 = ₦1,000,000 Step 4: Final ₦1,000,000 is taxed at 18%Tax = ₦1,000,000 × 0.18 = ₦180,000Remaining = ₦0 (all income accounted for) Step 5: Add up all taxes₦0 + ₦330,000 + ₦180,000 = ₦510,000 Monthly BreakdownMonthly Salary: ₦333,333 (4,000,000 ÷ 12)Monthly Tax: ₦42,500 (510,000 ÷ 12)Monthly Take-Home: ₦290,833 (333,333 - 42,500)Effective Tax Rate: 12.75% (510,000 ÷ 4,000,000)Complete Tax Brackets (New Law)Income BandRateYour AmountTax DueFirst ₦800,0000%₦800,000₦0Next ₦2,200,00015%₦2,200,000₦330,000Next ₦9,000,00018%₦1,000,000₦180,000Next ₦13,000,00021%₦0₦0Next ₦25,000,00023%₦0₦0Above ₦50,000,00025%₦0₦0Summary in One Sentence:You pay 0% on the first ₦800,000 (₦0 tax), 15% on the next ₦2,200,000 (₦330,000 tax), and 18% on the remaining ₦1,000,000 (₦180,000 tax) = ₦510,000 total annual tax.Assuming my Income is 1 Million Naira per AnnumGross Annual Income: ₦1,500,000Chunk 1: ₦800,000 (the first part)Chunk 2: ₦700,000 (the remaining part)         ─────────Total:   ₦1,500,000 ✓                    Tax Calculation (Step by Step)Chunk 1: First ₦800,000Tax rate: 0% (FREE - No tax!)Tax = ₦800,000 × 0% = ₦0Chunk 2: Next ₦700,000Tax rate: 15%Tax = ₦700,000 × 15% = ₦105,000Total Annual Tax: ₦105,000 Monthly BreakdownMonthly Salary: ₦125,000Monthly Tax: ₦8,750Monthly Take-Home: ₦116,250Complete Tax Brackets (New Law)Income BandRateYour AmountTax DueFirst ₦800,0000%₦800,000₦0Next ₦2,200,00015%₦700,000₦105,000Next ₦9,000,00018%₦0₦0Next ₦13,000,00021%₦0₦0Next ₦25,000,00023%₦0₦0Above ₦50,000,00025%₦0₦0Summary in One Sentence:You pay 0% tax on your first ₦800,000, then 15% tax on the remaining ₦700,000 = ₦105,000 total annual tax.
+### PAYE Tax Calculation Breakdown
+
+#### New Tax Law - Simple & Clear Explanation
+
+---
+
+**Assuming my Income is ₦4 Million Naira per Annum**
+**Gross Annual Income**: ₦4,000,000
+
+| Chunk No. | Amount (₦)     | Description          |
+| --------- | -------------- | -------------------- |
+| Chunk 1   | ₦800,000       | Tax-free portion     |
+| Chunk 2   | ₦2,200,000     | Next taxable portion |
+| Chunk 3   | ₦1,000,000     | Remaining portion    |
+| **Total** | **₦4,000,000** | **Total Income**     |
+
+---
+
+### The Simple Rule
+
+Think of your income as water filling up different buckets. Each bucket has a different tax rate. You fill the first bucket completely before moving to the next one.
+
+---
+
+### Tax Calculation (Step by Step)
+
+1. **Bucket 1**: First ₦800,000
+
+   * **Tax rate**: 0% (COMPLETELY FREE!)
+   * **Tax**: ₦800,000 × 0% = ₦0
+   * ✅ **This entire amount is yours to keep - no tax at all!**
+
+2. **Bucket 2**: Next ₦2,200,000
+
+   * **Tax rate**: 15%
+   * **Tax**: ₦2,200,000 × 15% = ₦330,000
+   * 💡 **Calculation**: 2,200,000 ÷ 100 × 15 = 330,000
+
+3. **Bucket 3**: Next ₦1,000,000 (you partially fill this)
+
+   * **Tax rate**: 18%
+   * **Tax**: ₦1,000,000 × 18% = ₦180,000
+   * 💡 **Calculation**: 1,000,000 ÷ 100 × 18 = 180,000
+   * ℹ️ **You don't earn enough to fill this bucket completely**
+
+---
+
+### Total Annual Tax
+
+* **Tax from Bucket 1**: ₦0
+* **Tax from Bucket 2**: ₦330,000
+* **Tax from Bucket 3**: ₦180,000
+* **Total**: ₦510,000
+
+---
+
+### Detailed Math Breakdown
+
+1. Start with your income: **₦4,000,000**
+2. First ₦800,000 is tax-free
+
+   * Remaining: ₦4,000,000 - ₦800,000 = ₦3,200,000
+3. Next ₦2,200,000 is taxed at 15%
+
+   * Tax = ₦2,200,000 × 0.15 = ₦330,000
+   * Remaining: ₦3,200,000 - ₦2,200,000 = ₦1,000,000
+4. Final ₦1,000,000 is taxed at 18%
+
+   * Tax = ₦1,000,000 × 0.18 = ₦180,000
+   * Remaining: ₦0 (all income accounted for)
+5. Add up all taxes: ₦0 + ₦330,000 + ₦180,000 = ₦510,000
+
+---
+
+### Monthly Breakdown
+
+* **Monthly Salary**: ₦333,333 (₦4,000,000 ÷ 12)
+* **Monthly Tax**: ₦42,500 (₦510,000 ÷ 12)
+* **Monthly Take-Home**: ₦290,833 (₦333,333 - ₦42,500)
+* **Effective Tax Rate**: 12.75% (₦510,000 ÷ ₦4,000,000)
+
+---
+
+### Complete Tax Brackets (New Law)
+
+| Income Band       | Rate | Your Amount (₦) | Tax Due (₦) |
+| ----------------- | ---- | --------------- | ----------- |
+| First ₦800,000    | 0%   | ₦800,000        | ₦0          |
+| Next ₦2,200,000   | 15%  | ₦2,200,000      | ₦330,000    |
+| Next ₦9,000,000   | 18%  | ₦1,000,000      | ₦180,000    |
+| Next ₦13,000,000  | 21%  | ₦0              | ₦0          |
+| Next ₦25,000,000  | 23%  | ₦0              | ₦0          |
+| Above ₦50,000,000 | 25%  | ₦0              | ₦0          |
+
+---
+
+### Summary in One Sentence:
+
+You pay 0% on the first ₦800,000 (₦0 tax), 15% on the next ₦2,200,000 (₦330,000 tax), and 18% on the remaining ₦1,000,000 (₦180,000 tax), resulting in ₦510,000 total annual tax.
+
+---
+
+**Assuming my Income is ₦1 Million Naira per Annum**
+
+**Gross Annual Income**: ₦1,500,000
+
+| Chunk No. | Amount (₦)     | Description      |
+| --------- | -------------- | ---------------- |
+| Chunk 1   | ₦800,000       | First part       |
+| Chunk 2   | ₦700,000       | Remaining part   |
+| **Total** | **₦1,500,000** | **Total Income** |
+
+---
+
+### Tax Calculation (Step by Step)
+
+1. **Chunk 1**: First ₦800,000
+
+   * **Tax rate**: 0% (FREE - No tax!)
+   * **Tax**: ₦800,000 × 0% = ₦0
+
+2. **Chunk 2**: Next ₦700,000
+
+   * **Tax rate**: 15%
+   * **Tax**: ₦700,000 × 15% = ₦105,000
+
+**Total Annual Tax**: ₦105,000
+
+---
+
+### Monthly Breakdown
+
+* **Monthly Salary**: ₦125,000 (₦1,500,000 ÷ 12)
+* **Monthly Tax**: ₦8,750 (₦105,000 ÷ 12)
+* **Monthly Take-Home**: ₦116,250 (₦125,000 - ₦8,750)
+
+---
+
+### Complete Tax Brackets (New Law)
+
+| Income Band       | Rate | Your Amount (₦) | Tax Due (₦) |
+| ----------------- | ---- | --------------- | ----------- |
+| First ₦800,000    | 0%   | ₦800,000        | ₦0          |
+| Next ₦2,200,000   | 15%  | ₦700,000        | ₦105,000    |
+| Next ₦9,000,000   | 18%  | ₦0              | ₦0          |
+| Next ₦13,000,000  | 21%  | ₦0              | ₦0          |
+| Next ₦25,000,000  | 23%  | ₦0              | ₦0          |
+| Above ₦50,000,000 | 25%  | ₦0              | ₦0          |
+
+ 
+Summary in One Sentence:
+
+You pay 0% tax on your first ₦800,000, then 15% tax on the remaining ₦700,000, which results in ₦105,000 total annual tax. 

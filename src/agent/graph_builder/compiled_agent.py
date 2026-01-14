@@ -11,6 +11,7 @@ from src.agent.sub_agents.router import route_query
 from src.agent.sub_agents.tax_policy import tax_policy_agent
 from src.agent.sub_agents.paye import paye_calculation_agent
 from src.agent.sub_agents.combined_agent import combined_agent
+from src.agent.sub_agents.financial_advice import financial_advice_agent
 from src.agent.response_generator import response_generator, decide_next_step
 from src.configurations.config import settings
 
@@ -93,6 +94,7 @@ async def get_compiled_agent():
     workflow.add_node("tax_agent", tax_policy_agent)
     workflow.add_node("paye_agent", paye_calculation_agent)
     workflow.add_node("combined_agent", combined_agent)
+    workflow.add_node("financial_agent", financial_advice_agent)
     workflow.add_node("responder", response_generator)
     
     # Set entry point
@@ -105,7 +107,8 @@ async def get_compiled_agent():
         {
             "tax_agent": "tax_agent",
             "paye_agent": "paye_agent",
-            "combined_agent": "combined_agent"
+            "combined_agent": "combined_agent",
+            "financial_agent": "financial_agent"
         }
     )
     
@@ -114,6 +117,9 @@ async def get_compiled_agent():
     
     # PAYE agent -> responder
     workflow.add_edge("paye_agent", "responder")
+    
+    # Financial agent -> end (already has final answer)
+    workflow.add_edge("financial_agent", END)
     
     # Combined agent -> end (already has final answer)
     workflow.add_edge("combined_agent", END)

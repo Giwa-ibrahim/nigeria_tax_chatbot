@@ -22,6 +22,8 @@ chromadb
 python-dotenv
 tavily-python
 langchain_google_genai
+langchain-cohere
+cohere
 fastapi
 uvicorn[standard]
 pydantic
