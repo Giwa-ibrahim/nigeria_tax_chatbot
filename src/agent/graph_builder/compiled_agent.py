@@ -43,7 +43,7 @@ async def get_checkpointer():
         # Create connection pool
         connection_kwargs = {
             "autocommit": True,
-            "prepare_threshold": 0,
+            "prepare_threshold": None,
             "row_factory": dict_row
         }
         

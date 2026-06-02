@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     MAX_TOKENS:int
     DATABASE_URL:str
     TAVILY_API_KEY:str
-    ENDPOINT_AUTH_KEY:str
+    ACCESS_TOKEN:str = ""
+    APP_ID:str = ""
+    APP_SECRET:str = ""
+    RECIPIENT_WAID:str = ""
+    VERSION:str = ""
+    PHONE_NUMBER_ID:str = ""
+    WHATSAPP_VERIFY_TOKEN:str = ""
+    ENDPOINT_AUTH_KEY:str = ""
+    RESEND_API_KEY:str = ""
 
 settings = Settings()

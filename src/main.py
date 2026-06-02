@@ -15,6 +15,7 @@ from fastapi.responses import RedirectResponse
 
 from src.api.routes.chat_agent import router as chat_router
 from src.api.routes.prompts import router as prompts_router
+from src.api.routes.webhook import router as webhook_router
 from src.agent.graph_builder.compiled_agent import close_checkpointer
 from src.api.utilis.auth import endpoint_auth
 
@@ -70,6 +71,7 @@ app.add_middleware(
 # Include Routers
 app.include_router(chat_router, dependencies=[Depends(endpoint_auth)])
 app.include_router(prompts_router)  # No auth needed for example prompts
+app.include_router(webhook_router)  # No auth - WhatsApp handles verification
 
 
 # Root Endpoint
