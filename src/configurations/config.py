@@ -24,6 +24,5 @@ class Settings(BaseSettings):
     PHONE_NUMBER_ID:str = ""
     WHATSAPP_VERIFY_TOKEN:str = ""
     ENDPOINT_AUTH_KEY:str = ""
-    RESEND_API_KEY:str = ""
 
 settings = Settings()

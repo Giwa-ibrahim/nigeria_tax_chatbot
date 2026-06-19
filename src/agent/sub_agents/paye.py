@@ -9,6 +9,7 @@ from src.agent.meta_prompt import (
     generate_conditional_answer,
     create_engagement_response
 )
+from src.agent.context_enrichment import get_paye_instructions
 
 logger = logging.getLogger("paye_agent")
 
@@ -16,6 +17,11 @@ logger = logging.getLogger("paye_agent")
 async def paye_calculation_agent(state: AgentState) -> AgentState:
     """
     PAYE Calculation Agent - Handles PAYE-specific questions with intelligent meta-prompting.
+    
+    🆕 PERSONALIZATION: Now checks for pre-loaded user data from main app!
+    - If user has tax calculation history → uses it automatically
+    - If no data → asks questions like before
+    
     Uses meta-analysis to determine the best interaction approach:
     - Friendly information collection for engaged users
     - Conditional answers for impatient users
@@ -25,6 +31,15 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     
     query = state["query"]
     chat_history = format_chat_history(state.get("messages", []))
+    
+    # 🆕 CHECK FOR PRE-LOADED USER DATA
+    paye_context = state.get("paye_user_context")
+    has_user_data = paye_context is not None
+    
+    if has_user_data:
+        logger.info("✅ User has pre-loaded tax data from main app!")
+    else:
+        logger.info("⚠️  No tax data found - will ask questions")
     
     # META-PROMPTING: Analyze the query first
     logger.info("🤔 Analyzing query to determine approach...")
@@ -38,6 +53,13 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     is_calculation_request = meta_analysis.get("is_calculation_request", False)
     
     logger.info(f"📊 Calc request: {is_calculation_request}, Approach: {approach}, Mood: {user_mood}, Needs info: {needs_clarification}")
+    
+    # 🆕 OVERRIDE CLARIFICATION IF USER DATA EXISTS
+    # If user wants calculation AND we have their data → skip questions!
+    if is_calculation_request and has_user_data:
+        logger.info("🎯 Calculation requested + user data exists → Using pre-loaded data!")
+        needs_clarification = False
+        missing_info = []
     
     # If user wants calculation but missing deductions - DON'T search RAG yet, just ask for info
     if is_calculation_request and needs_clarification and approach == "collect":
@@ -53,15 +75,27 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     
     # Otherwise, proceed with RAG search (no web search for PAYE - faster)
     logger.info("📖 Querying knowledge base...")
+    
+    # 🆕 INCLUDE USER CONTEXT IN RAG QUERY if available
+    rag_context = chat_history
+    if paye_context:
+        rag_context = f"{paye_context}\n\n{chat_history}"
+        logger.info("📋 Added pre-loaded tax data to RAG context")
+    
     result = query_rag(
         user_query=query,
         collection_type="paye",
         top_k=3,
         return_sources=True,
-        chat_history=chat_history
+        chat_history=rag_context  # 🆕 Enhanced with user data
     )
     
     combined_context = result['answer']
+    
+    # 🆕 PREPEND USER INSTRUCTIONS if data exists
+    if paye_context:
+        instructions = get_paye_instructions(has_context=True)
+        combined_context = f"{instructions}\n\n{combined_context}"
     
     # Continue with decision tree
     logger.info(f"📊 Approach: {approach}, Mood: {user_mood}")

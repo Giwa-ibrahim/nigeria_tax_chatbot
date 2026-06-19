@@ -20,10 +20,7 @@ class ChatResponse(BaseModel):
 
 # Conversation History
 
-class ConversationHistoryRequest(BaseModel):
-    """Request schema for conversation history."""
-    user_id: str = Field(..., description="User ID for tracking user sessions")
-    thread_id: str = Field(..., description="Conversation thread ID for maintaining context")
+
 
 class ConversationHistoryResponse(BaseModel):
     """Response schema for conversation history."""
@@ -50,9 +47,7 @@ class EditResponse(BaseModel):
     timestamp: Optional[datetime] = Field(..., description="Timestamp of the response")
 
 # List all sessions for a user
-class ListSessionsRequest(BaseModel):
-    """Request schema for listing sessions."""
-    user_id: str = Field(..., description="User ID for tracking user sessions")
+
 
 class ListSessionResponse(BaseModel):
     """Response schema for listing sessions."""
@@ -61,16 +56,7 @@ class ListSessionResponse(BaseModel):
     
 
 # Delete Endpoint
-class DeleteSessionRequest(BaseModel):
-    """Request schema for deleting a session."""
-    user_id: str = Field(
-        ...,
-        description="User ID for tracking user sessions"
-    )
-    thread_id: str = Field(
-        ...,
-        description="Conversation thread ID for maintaining context"
-    )
+
 
 class DeleteSessionResponse(BaseModel):
     """Response schema for deleting a session."""

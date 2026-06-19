@@ -160,6 +160,20 @@ async def process_whatsapp_message(message: WhatsAppMessage):
             phone_number = message.from_number
             
             try:
+                from src.database.chat_manager import ChatManager
+                
+                # Track user activity
+                await ChatManager.track_user_activity(phone_number)
+                
+                # Save user message
+                try:
+                    await ChatManager.add_user_message(
+                        thread_id=phone_number,
+                        content=message.text_body
+                    )
+                except Exception as e:
+                    logger.warning(f"⚠️ Failed to save user message: {e}")
+
                 # Call the main agent
                 result = await main_agent(
                     user_id=phone_number,      # Track the WhatsApp user
@@ -170,6 +184,17 @@ async def process_whatsapp_message(message: WhatsAppMessage):
                 
                 # Extract the answer
                 response_text = result.get("answer")
+                
+                # Save assistant response
+                try:
+                    await ChatManager.add_assistant_message(
+                        thread_id=phone_number,
+                        content=response_text,
+                        agent_type=result.get("route_used", "unknown"),
+                        tokens_used=0
+                    )
+                except Exception as e:
+                    logger.warning(f"⚠️ Failed to save assistant message: {e}")
                 
                 # Truncate if needed (WhatsApp has 4096 char limit)
                 response_text = truncate_message(response_text)
