@@ -202,3 +202,40 @@ class LLMManager:
             delay=retry_state.next_action.sleep,
             error=str(retry_state.outcome.exception()),
         )
+
+    async def check_health(self) -> dict[str, str]:
+        """
+        Check the health of configured LLM providers.
+        Returns status of each provider.
+        """
+        results = {}
+        for name, provider in self.providers.items():
+            if not provider.api_key:
+                results[name] = "not_configured"
+                continue
+
+            breaker = self._breakers[name]
+            if breaker.current_state == pybreaker.STATE_OPEN:
+                results[name] = "circuit_breaker_open"
+                continue
+
+            try:
+                # Instantiate client with low timeout and max_tokens for quick health checking
+                kwargs = {
+                    "model": provider.model,
+                    provider.key_arg: provider.api_key,
+                    "temperature": 0.0,
+                    "max_tokens": 5,
+                    "timeout": 3.0,
+                }
+                client_instance = provider.client(**kwargs)
+                await client_instance.ainvoke("ping")
+                results[name] = "healthy"
+            except Exception as e:
+                logger.error(
+                    "LLM provider health check failed",
+                    provider=name,
+                    error=str(e),
+                )
+                results[name] = f"unhealthy: {str(e)}"
+        return results

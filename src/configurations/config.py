@@ -27,5 +27,11 @@ class Settings(BaseSettings):
     WHATSAPP_VERIFY_TOKEN:str = ""
     ENDPOINT_AUTH_KEY:str = ""
     ALLOWED_ORIGINS: str = "http://localhost:8000"
+    
+    # LangSmith Monitoring
+    LANGSMITH_TRACING: str = "true"
+    LANGSMITH_API_KEY: str
+    LANGSMITH_ENDPOINT: str = "https://api.smith.langchain.com"
+    LANGSMITH_PROJECT: str = "taxbot"
 
 settings = Settings()

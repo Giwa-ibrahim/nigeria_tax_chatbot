@@ -9,7 +9,7 @@ Reason: This runs on port 8080 to avoid conflict with Chainlit (port 8000)
 import structlog
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -20,8 +20,9 @@ from src.api.utilis.limiter import limiter
 from src.api.routes.chat_agent import router as chat_router
 from src.api.routes.prompts import router as prompts_router
 from src.api.routes.webhook import router as webhook_router
-from src.agent.graph_builder.compiled_agent import close_checkpointer
+from src.database.connection import health_check as db_health_check, close_database
 from src.api.utilis.auth import endpoint_auth
+from src.services import LLMManager
 
 from src.configurations.logging_config import setup_structured_logging
 
@@ -45,7 +46,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("🛑 Shutting down Nigerian Tax Chatbot API...")
     try:
-        await close_checkpointer()
+        await close_database()
         logger.info("✅ Database connections closed")
     except Exception as e:
         logger.error(f"❌ Error during shutdown: {e}")
@@ -96,5 +97,46 @@ async def root():
 async def ping():
     """Simple ping endpoint."""
     return {"status": "ok", "message": "pong"}
+
+
+@app.get("/health", tags=["health"])
+async def health():
+    """
+    Simple liveness health check.
+    Returns status: healthy if the API is running.
+    """
+    return {"status": "healthy"}
+
+
+@app.get("/health/deep", tags=["health"])
+async def deep_health():
+    """
+    Deep readiness health check.
+    Verifies database connectivity and LLM provider accessibility.
+    """
+    db_healthy = await db_health_check()
+    
+    llm_manager = LLMManager()
+    llm_results = await llm_manager.check_health()
+    
+    # Determine overall status: DB must be healthy, and at least one LLM provider must be healthy.
+    configured_llms = [status_str for status_str in llm_results.values() if status_str != "not_configured"]
+    llms_healthy = any(status_str == "healthy" for status_str in configured_llms) if configured_llms else False
+    
+    overall_healthy = db_healthy and llms_healthy
+    
+    response_data = {
+        "status": "healthy" if overall_healthy else "unhealthy",
+        "database": "healthy" if db_healthy else "unhealthy",
+        "llm_providers": llm_results
+    }
+    
+    if not overall_healthy:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=response_data
+        )
+        
+    return response_data
 
 
