@@ -166,9 +166,6 @@ async def send_whatsapp_message(to_number: str, message_text: str) -> Dict[str, 
     """
     url = f"https://graph.facebook.com/{settings.VERSION}/{settings.PHONE_NUMBER_ID}/messages"
     
-    # Format phone number
-    #formatted_number = format_phone_number(to_number)
-    
     headers = {
         "Authorization": f"Bearer {settings.ACCESS_TOKEN}",
         "Content-Type": "application/json"
@@ -277,24 +274,25 @@ def format_phone_number(phone: str) -> str:
 # Validate Message Length
 # ============================================================================
 
-def truncate_message(message: str, max_length: int = 4096) -> str:
+# Instead of truncating message, let's put an acceptance word limit. So, if the word limit does not meet up, it should rather decline the message.
+def truncate_message(message: str, max_words: int = 800) -> str:
     """
-    Truncate message to WhatsApp's maximum length.
-    
-    WhatsApp has a 4096 character limit for text messages.
+    Check if the message meets the acceptance word limit.
+    If it exceeds the limit, decline the message and return a decline notice.
     
     Args:
         message: The message text
-        max_length: Maximum allowed length (default: 4096)
+        max_words: Maximum allowed words (default: 800)
         
     Returns:
-        Truncated message if necessary
+        The original message or a declination message if it exceeds the limit.
     """
-    if len(message) <= max_length:
+    if not message:
+        return ""
+        
+    word_count = len(message.split())
+    if word_count <= max_words:
         return message
-    
-    # Truncate and add ellipsis
-    truncated = message[:max_length - 3] + "..."
-    logger.warning(f"Message truncated from {len(message)} to {len(truncated)} characters")
-    
-    return truncated
+        
+    logger.warning(f"Message declined: word count {word_count} exceeds limit of {max_words}")
+    return "I'm sorry, but the response is too detailed to be sent over WhatsApp. Please try asking a more specific question."

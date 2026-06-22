@@ -27,3 +27,8 @@ cohere
 fastapi
 uvicorn[standard]
 pydantic
+slowapi
+tenacity
+pybreaker
+structlog
+langchain-cerebras

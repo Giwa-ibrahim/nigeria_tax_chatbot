@@ -1,14 +1,20 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import html
 
 
 # Chat Endpoint
 class ChatRequest(BaseModel):
     """Request schema for chat endpoint."""
     user_id: str = Field(..., description="User ID for tracking user sessions")
-    query: str = Field( ..., min_length=1, max_length=1000, description="User's tax-related question")
+    query: str = Field( ..., min_length=1, max_length=500, description="User's tax-related question")
     thread_id: Optional[str] = Field( default="default", description="Conversation thread ID for maintaining context")
+
+    @field_validator('query')
+    @classmethod
+    def sanitize_query(cls, v: str) -> str:
+        return html.escape(v)
 
 class ChatResponse(BaseModel):
     """Response schema for chat endpoint."""
@@ -20,8 +26,6 @@ class ChatResponse(BaseModel):
 
 # Conversation History
 
-
-
 class ConversationHistoryResponse(BaseModel):
     """Response schema for conversation history."""
     user_id: str = Field(..., description="User ID for tracking user sessions")
@@ -31,23 +35,7 @@ class ConversationHistoryResponse(BaseModel):
     timestamp: Optional[datetime] = Field(..., description="Timestamp of the response")
 
 
-# Edit/Update User Query
-class EditRequest(BaseModel):
-    """Request schema for editing user query."""
-    user_id: str = Field(..., description="User ID for tracking user sessions")
-    thread_id: str = Field(..., description="Conversation thread ID for maintaining context")
-    query: str = Field(..., description="User's tax-related question")
-
-
-class EditResponse(BaseModel):
-    """Response schema for editing user query."""
-    user_id: str = Field(..., description="User ID for tracking user sessions")
-    thread_id: str = Field(..., description="Conversation thread ID for maintaining context")
-    query: str = Field(..., description="User's tax-related question")
-    timestamp: Optional[datetime] = Field(..., description="Timestamp of the response")
-
 # List all sessions for a user
-
 
 class ListSessionResponse(BaseModel):
     """Response schema for listing sessions."""
@@ -56,7 +44,6 @@ class ListSessionResponse(BaseModel):
     
 
 # Delete Endpoint
-
 
 class DeleteSessionResponse(BaseModel):
     """Response schema for deleting a session."""

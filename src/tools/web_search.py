@@ -1,11 +1,30 @@
-import logging
+import structlog
 from typing import List, Dict, Optional
 from urllib.parse import urlparse
 #from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_tavily import TavilySearch
+from tenacity import retry, stop_after_attempt, wait_exponential
 from src.configurations.config import settings
 
-logger = logging.getLogger("tavily_tool")
+logger = structlog.get_logger("tavily_tool")
+
+def log_retry(retry_state):
+    logger.warning(
+        "Tavily API call failed, retrying...",
+        attempt=retry_state.attempt_number,
+        next_delay=retry_state.next_action.sleep,
+        exception=str(retry_state.outcome.exception())
+    )
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    before_sleep=log_retry,
+    reraise=True
+)
+def _invoke_tool_with_retry(tool, query):
+    return tool.invoke({"query": query})
+
 
 
 def get_tavily(max_results: int = 3) -> Optional[TavilySearch]:
@@ -92,8 +111,8 @@ def search_web(query: str, max_results: int = 3) -> str:
     try:
         logger.info(f"🔍 Searching web for: {query[:100]}...")
         
-        # Invoke the tool
-        response = tool.invoke({"query": query})
+        # Invoke the tool with retry
+        response = _invoke_tool_with_retry(tool, query)
         
         # Filter results by allowed domains
         if 'results' in response:
@@ -153,8 +172,8 @@ def search_financial_web(query: str, max_results: int = 5) -> str:
         
         logger.info(f"🔍 Searching financial sites for: {query[:100]}...")
         
-        # Invoke the tool
-        response = tool.invoke({"query": query})
+        # Invoke the tool with retry
+        response = _invoke_tool_with_retry(tool, query)
         
         # Filter results by allowed domains (extra validation)
         if 'results' in response:

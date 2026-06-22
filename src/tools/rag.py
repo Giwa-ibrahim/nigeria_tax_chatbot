@@ -1,4 +1,4 @@
-import logging
+import structlog
 from typing import Dict, Optional
 from dotenv import load_dotenv
 
@@ -11,7 +11,7 @@ from src.configurations.config import settings
 # Load environment variables
 load_dotenv()
 
-logger = logging.getLogger("rag")
+logger = structlog.get_logger("rag")
 
 
 # ============================================================================
@@ -53,10 +53,7 @@ def query_rag(
             - answer: Generated response
             - sources: List of source documents (if return_sources=True)
             - model_used: Name of the LLM model used
-    
-    Example:
-        >>> result = query_rag("What is PAYE?", collection_type="paye")
-        >>> print(result['answer'])
+
     """
     logger.info(f"Processing query: '{user_query[:100]}...'")
     

@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     GROQ_MODEL:str
     COHERE_API_KEY:str
     COHERE_MODEL:str
+    CEREBRAS_API_KEY:str = ""
+    CEREBRAS_MODEL:str = ""
     TEMPERATURE:float
     MAX_TOKENS:int
     DATABASE_URL:str
@@ -24,5 +26,6 @@ class Settings(BaseSettings):
     PHONE_NUMBER_ID:str = ""
     WHATSAPP_VERIFY_TOKEN:str = ""
     ENDPOINT_AUTH_KEY:str = ""
+    ALLOWED_ORIGINS: str = "http://localhost:8000"
 
 settings = Settings()

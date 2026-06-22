@@ -6,12 +6,16 @@ uvicorn src.main:app --reload --port 8080
 Reason: This runs on port 8080 to avoid conflict with Chainlit (port 8000)
 """
 
-import logging
+import structlog
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from src.configurations.config import settings
+from src.api.utilis.limiter import limiter
 
 from src.api.routes.chat_agent import router as chat_router
 from src.api.routes.prompts import router as prompts_router
@@ -19,9 +23,10 @@ from src.api.routes.webhook import router as webhook_router
 from src.agent.graph_builder.compiled_agent import close_checkpointer
 from src.api.utilis.auth import endpoint_auth
 
-logging.basicConfig(level=logging.INFO)
+from src.configurations.logging_config import setup_structured_logging
 
-logger = logging.getLogger("fastapi_app")
+setup_structured_logging()
+logger = structlog.get_logger("fastapi_app")
 
 
 # Lifespan Context Manager (Startup/Shutdown)
@@ -57,11 +62,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",")] if settings.ALLOWED_ORIGINS else []
 
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify allowed origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,7 +80,7 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(chat_router, dependencies=[Depends(endpoint_auth)])
-app.include_router(prompts_router)  # No auth needed for example prompts
+app.include_router(prompts_router, dependencies=[Depends(endpoint_auth)])
 app.include_router(webhook_router)  # No auth - WhatsApp handles verification
 
 

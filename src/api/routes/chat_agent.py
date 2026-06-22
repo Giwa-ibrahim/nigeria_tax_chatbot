@@ -1,27 +1,22 @@
-import logging
-from fastapi import APIRouter, HTTPException, status
+import structlog
+from fastapi import APIRouter, HTTPException, status, Request
 from typing import Dict, Any, List
 from datetime import datetime
 
 from src.api.utilis.schema import (
     ChatRequest,
     ChatResponse,
-    ConversationHistoryRequest,
     ConversationHistoryResponse,
-    EditRequest,
-    EditResponse,
-    ListSessionsRequest,
     ListSessionResponse,
-    DeleteSessionRequest,
     DeleteSessionResponse
 )
 from src.agent.main_agent import main_agent
 from src.configurations.config import settings
 from src.database.chat_manager import ChatManager
-from src.agent.graph_builder.compiled_agent import get_compiled_agent
 from src.database.repository import ChatSessionRepository
+from src.api.utilis.limiter import limiter
 
-logger = logging.getLogger("chat_api")
+logger = structlog.get_logger("chat_api")
 
 # Create router
 router = APIRouter(prefix="/api/v1", tags=["chatbot"])
@@ -31,7 +26,8 @@ router = APIRouter(prefix="/api/v1", tags=["chatbot"])
 # ============================================================================
 
 @router.post("/chat", response_model=ChatResponse, status_code=status.HTTP_200_OK)
-async def chat(request: ChatRequest) -> ChatResponse:
+@limiter.limit("10/minute")
+async def chat(request: Request, chat_req: ChatRequest) -> ChatResponse:
     """
     Handle chat requests with the Nigerian Tax Assistant.
     
@@ -49,11 +45,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
     - ChatResponse with bot answer and metadata
     """
     try:
-        logger.info(f"📨 Chat request - User: {request.user_id}, Thread: {request.thread_id}")
+        logger.info(f"📨 Chat request - User: {chat_req.user_id}, Thread: {chat_req.thread_id}")
         
         # 🆕 CHECK RATE LIMIT using ChatManager
         is_allowed, _ = await ChatManager.check_user_rate_limit(
-            user_id=request.user_id,
+            user_id=chat_req.user_id,
             max_requests=20,  # 20 requests per hour
             window_minutes=60
         )
@@ -65,13 +61,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
             )
             
         # Optional: track user activity
-        await ChatManager.track_user_activity(request.user_id)
+        await ChatManager.track_user_activity(chat_req.user_id)
         
         # 🆕 SAVE USER MESSAGE TO DATABASE
         try:
             await ChatManager.add_user_message(
-                thread_id=request.thread_id,
-                content=request.query
+                thread_id=chat_req.thread_id,
+                content=chat_req.query
             )
             logger.info("💾 User message saved to database")
         except Exception as e:
@@ -79,16 +75,16 @@ async def chat(request: ChatRequest) -> ChatResponse:
         
         # Call the main agent (async)
         result = await main_agent(
-            user_id=request.user_id,
-            query=request.query,
+            user_id=chat_req.user_id,
+            query=chat_req.query,
             return_sources=False,  # Can be made configurable
-            thread_id=request.thread_id
+            thread_id=chat_req.thread_id
         )
         
         # 🆕 SAVE ASSISTANT RESPONSE TO DATABASE
         try:
             await ChatManager.add_assistant_message(
-                thread_id=request.thread_id,
+                thread_id=chat_req.thread_id,
                 content=result["answer"],
                 agent_type=result["route_used"],  # paye, tax_policy, financial_advice
                 tokens_used=0  # TODO: Add token counting in Phase 7
@@ -99,8 +95,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
         
         # Map the response to ChatResponse schema
         return ChatResponse(
-            user_id=request.user_id,
-            thread_id=request.thread_id,
+            user_id=chat_req.user_id,
+            thread_id=chat_req.thread_id,
             bot_response=result["answer"],
             data_source=result["route_used"],
             timestamp=datetime.utcnow()
