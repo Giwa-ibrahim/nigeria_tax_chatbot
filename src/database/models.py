@@ -156,3 +156,35 @@ class ChatUser(Base):
     
     def __repr__(self):
         return f"<ChatUser(id={self.id}, user_id={self.user_id})>"
+
+
+class UserPreference(Base):
+    """
+    Learned user preferences across sessions
+    Helps agent get smarter over time
+    """
+    __tablename__ = "user_preferences"
+    
+    # Primary Key (UUID4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid4()), index=True)
+    
+    # User Identification
+    user_id = Column(String(255), nullable=False, index=True)
+    
+    # Learned preferences
+    preferred_communication_style = Column(String(50), nullable=True)  # "concise" | "detailed" | "balanced"
+    topic_interests = Column(JSON, default=dict)  # {"paye": 15, "tax_policy": 8}
+    calculation_defaults = Column(JSON, default=dict)  # Preferred PAYE inputs
+    
+    # Metadata
+    total_sessions = Column(Integer, default=0)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        Index("idx_user_pref_user_updated", "user_id", "last_updated"),
+    )
+    
+    def __repr__(self):
+        return f"<UserPreference(user_id={self.user_id}, style={self.preferred_communication_style})>"
+

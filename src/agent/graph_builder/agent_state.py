@@ -9,6 +9,8 @@ class AgentState(TypedDict):
     query: str                          # User's question
     messages: Annotated[list, add_messages] # Messages
     route: str                          # Which agent(s) to use: "tax", "paye", or "both"
+    user_profile: dict                  # Pre-loaded main app profile data
+    user_preferences: dict              # Learned user preferences
     tax_answer: str                     # Answer from tax policy agent
     paye_answer: str                    # Answer from PAYE agent
     final_answer: str                   # Combined final answer

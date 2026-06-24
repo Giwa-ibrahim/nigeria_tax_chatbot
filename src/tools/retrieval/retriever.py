@@ -3,6 +3,7 @@ import cohere
 from typing import List, Dict, Tuple, Optional
 from src.vector_db.vectors import query_vectorstore
 from src.configurations.config import settings
+from src.tools.retrieval.hybrid_retriever import bm25_search, reciprocal_rank_fusion
 
 logger = logging.getLogger("doc_retriever")
 
@@ -79,7 +80,8 @@ def retrieve_context(
     top_k: int = 3,
     tax_collection: str = "tax_documents",
     paye_collection: str = "paye_calculations",
-    use_reranking: bool = True
+    use_reranking: bool = True,
+    use_hybrid: bool = True
 ) -> List[Tuple[str, Dict, float]]:
     """
     Retrieve relevant documents from vector stores with optional Cohere reranking.
@@ -91,11 +93,13 @@ def retrieve_context(
         tax_collection: Name of the tax policy collection
         paye_collection: Name of the PAYE collection
         use_reranking: Whether to use Cohere reranking (default: True)
+        use_hybrid: Whether to use Hybrid Search (BM25 + Semantic)
     
     Returns:
         List of tuples: (document_text, metadata, relevance_score)
     """
-    results = []
+    semantic_results = []
+    bm25_results = []
     
     # Retrieve more documents initially for reranking (2x top_k)
     initial_k = top_k * 2 if use_reranking else top_k
@@ -108,8 +112,13 @@ def retrieve_context(
             
             if tax_results:
                 for doc, score in tax_results:
-                    results.append((doc.page_content, doc.metadata, score))
-                logger.info(f"Retrieved {len(tax_results)} tax policy documents")
+                    semantic_results.append((doc.page_content, doc.metadata, score))
+                logger.info(f"Retrieved {len(tax_results)} tax policy documents (semantic)")
+                
+            if use_hybrid:
+                tax_bm25 = bm25_search(query, tax_collection, top_k=initial_k)
+                bm25_results.extend(tax_bm25)
+                logger.info(f"Retrieved {len(tax_bm25)} tax policy documents (bm25)")
         
         # Query PAYE documents
         if collection_type in ["paye", "both"]:
@@ -118,19 +127,35 @@ def retrieve_context(
             
             if paye_results:
                 for doc, score in paye_results:
-                    results.append((doc.page_content, doc.metadata, score))
-                logger.info(f"Retrieved {len(paye_results)} PAYE documents")
+                    semantic_results.append((doc.page_content, doc.metadata, score))
+                logger.info(f"Retrieved {len(paye_results)} PAYE documents (semantic)")
+                
+            if use_hybrid:
+                paye_bm25 = bm25_search(query, paye_collection, top_k=initial_k)
+                bm25_results.extend(paye_bm25)
+                logger.info(f"Retrieved {len(paye_bm25)} PAYE documents (bm25)")
         
-        if not results:
+        if not semantic_results and not bm25_results:
             logger.warning("No documents retrieved")
             return []
+            
+        # Combine if hybrid
+        if use_hybrid:
+            results = reciprocal_rank_fusion(semantic_results, bm25_results, top_k=initial_k*2)
+            logger.info(f"Fused {len(results)} results via RRF")
+        else:
+            results = semantic_results
         
         # Apply Cohere reranking to filter out irrelevant results
         if use_reranking and len(results) > 0:
             results = rerank_with_cohere(query, results, top_k=top_k)
         else:
-            # Sort by similarity score and limit
-            results.sort(key=lambda x: x[2])
+            # Sort by similarity score and limit (if not reranking)
+            # RRF scores are higher-is-better. Chroma similarity score depends on metric.
+            if use_hybrid:
+                results.sort(key=lambda x: x[2], reverse=True)
+            else:
+                results.sort(key=lambda x: x[2])
             results = results[:top_k]
         
         logger.info(f"✅ Final documents to use: {len(results)}")

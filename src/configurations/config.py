@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     RECIPIENT_WAID:str = ""
     VERSION:str = ""
     PHONE_NUMBER_ID:str = ""
-    WHATSAPP_VERIFY_TOKEN:str = ""
+    # WHATSAPP_VERIFY_TOKEN:str = ""
     ENDPOINT_AUTH_KEY:str = ""
     ALLOWED_ORIGINS: str = "http://localhost:8000"
     

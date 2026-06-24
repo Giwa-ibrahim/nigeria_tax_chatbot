@@ -32,3 +32,5 @@ tenacity
 pybreaker
 structlog
 langchain-cerebras
+rank-bm25
+tiktoken

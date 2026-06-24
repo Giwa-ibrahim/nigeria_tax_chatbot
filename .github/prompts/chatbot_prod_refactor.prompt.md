@@ -1,5 +1,14 @@
 # Plan: Production Readiness & Personalization for Nigerian Tax Chatbot
 
+## 💡 **GENERAL INSTRUCTIONS & CONVENTIONS**
+> [!IMPORTANT]
+> The following rules apply universally and must be adhered to at all times:
+> 
+> 1. **Naming Conventions**: Methods and function names must be short, concise, but still professional and descriptive.
+>    - *Example*: Use `_load_user_data` instead of `_load_main_app_data`.
+> 
+> 2. **Imports Placement**: All import statements must be placed at the beginning of the file. Do not use inline imports (importing inside functions or methods where they are needed). Group them cleanly at the top of the module.
+
 ## 📊 **PROGRESS TRACKER**
 
 ### **Status Legend**
@@ -17,9 +26,10 @@
 | **Phase 3** | PostgreSQL Optimization | ✅ **Completed** | Days 8-10 | None (Implemented) |
 | **Phase 4** | Multi-LLM Providers | ✅ **Completed** | Days 11-13 | None (Implemented) |
 | **Phase 5** | Monitoring & Observability | ✅ **Completed** | Days 14-16 | None (Implemented) |
-| **Phase 6** | RAG - BM25 Keyword | ⏳ Pending | Days 17-19 | Phase 5 complete |
-| **Phase 7** | RAG - Hybrid Search | ⏳ Pending | Days 20-22 | Phase 6 complete |
-| **Phase 8** | Final Polish & Testing | ⏳ Pending | Days 23-25 | All phases complete |
+| **Phase 6** | RAG - BM25 Keyword | ✅ **Completed** | Days 17-19 | Phase 5 complete |
+| **Phase 7** | Context Intelligence | ⏳ Pending | Days 20-22 | Phase 6 complete |
+| **Phase 8** | Contextual Retrieval Evaluation | ⏳ Pending | Day 23 | Phase 7 complete |
+| **Phase 9** | Final Polish & Testing | ⏳ Pending | Days 24-25 | All phases complete |
 
 ---
 

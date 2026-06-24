@@ -3,6 +3,7 @@ from src.agent.graph_builder.agent_state import AgentState
 from src.tools.rag import query_rag
 from src.tools.web_search import search_web
 from langchain_core.messages import HumanMessage, AIMessage
+from src.agent.utils import format_chat_history
 
 logger = logging.getLogger("combined_agent")
 
@@ -15,6 +16,8 @@ async def combined_agent(state: AgentState) -> AgentState:
     logger.info("🔄 Combined Agent processing...")
     
     query = state["query"]
+    chat_history = format_chat_history(state.get("messages", []))
+    user_preferences = state.get("user_preferences", {})
     
     # Parallel search: Web search for latest info (runs independently)
     logger.info("🔍 Searching web for latest tax updates...")
@@ -25,8 +28,10 @@ async def combined_agent(state: AgentState) -> AgentState:
     result = query_rag(
         user_query=query,  # Use original query for accurate vector search
         collection_type="both",
-        top_k=5,
-        return_sources=True
+        top_k=4, # Retrieve more documents for combined queries
+        return_sources=True,
+        chat_history=chat_history,
+        user_preferences=user_preferences
     )
     
     # Combine RAG answer with web results if available

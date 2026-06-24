@@ -31,6 +31,7 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     
     query = state["query"]
     chat_history = format_chat_history(state.get("messages", []))
+    user_preferences = state.get("user_preferences", {})
     
     # 🆕 CHECK FOR PRE-LOADED USER DATA
     paye_context = state.get("paye_user_context")
@@ -65,7 +66,7 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     if is_calculation_request and needs_clarification and approach == "collect":
         # FRIENDLY INFORMATION COLLECTION - Don't waste RAG/web search
         logger.info("💬 User wants calculation but missing deductions - asking for info...")
-        clarification = generate_clarification_request(missing_info, user_mood, query)
+        clarification = generate_clarification_request(missing_info, user_mood, query, user_preferences)
         
         if clarification:
             state["paye_answer"] = clarification
@@ -87,7 +88,8 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
         collection_type="paye",
         top_k=3,
         return_sources=True,
-        chat_history=rag_context  # 🆕 Enhanced with user data
+        chat_history=rag_context,  # 🆕 Enhanced with user data
+        user_preferences=user_preferences
     )
     
     combined_context = result['answer']
@@ -104,22 +106,22 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     if approach == "collect" and needs_clarification and missing_info:
         # This shouldn't trigger (handled above) but just in case
         logger.info("💬 Generating clarification request...")
-        clarification = generate_clarification_request(missing_info, user_mood, query)
+        clarification = generate_clarification_request(missing_info, user_mood, query, user_preferences)
         
         if clarification:
             state["paye_answer"] = clarification
         else:
-            state["paye_answer"] = create_engagement_response(query, combined_context, chat_history)
+            state["paye_answer"] = create_engagement_response(query, combined_context, chat_history, user_preferences)
             
     elif approach == "conditional" and missing_info:
         # CONDITIONAL ANSWER FOR IMPATIENT USERS
         logger.info("⚡ Generating conditional answer for impatient user...")
-        state["paye_answer"] = generate_conditional_answer(query, missing_info, combined_context)
+        state["paye_answer"] = generate_conditional_answer(query, missing_info, combined_context, user_preferences)
         
     elif approach == "collect" and user_mood == "engaged":
         # ENGAGEMENT MODE: Step-by-step educational response
         logger.info("📚 Creating engaging educational response...")
-        state["paye_answer"] = create_engagement_response(query, combined_context, chat_history)
+        state["paye_answer"] = create_engagement_response(query, combined_context, chat_history, user_preferences)
         
     else:
         # DIRECT ANSWER: User has provided enough info or asking general question

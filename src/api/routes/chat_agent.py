@@ -1,5 +1,5 @@
 import structlog
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status, Request, BackgroundTasks
 from typing import Dict, Any, List
 from datetime import datetime
 
@@ -15,6 +15,7 @@ from src.configurations.config import settings
 from src.database.chat_manager import ChatManager
 from src.database.repository import ChatSessionRepository
 from src.api.utilis.limiter import limiter
+from src.agent.preference_learner import schedule_learning
 
 logger = structlog.get_logger("chat_api")
 
@@ -27,22 +28,9 @@ router = APIRouter(prefix="/api/v1", tags=["chatbot"])
 
 @router.post("/chat", response_model=ChatResponse, status_code=status.HTTP_200_OK)
 @limiter.limit("10/minute")
-async def chat(request: Request, chat_req: ChatRequest) -> ChatResponse:
+async def chat(request: Request, chat_req: ChatRequest, background_tasks: BackgroundTasks) -> ChatResponse:
     """
     Handle chat requests with the Nigerian Tax Assistant.
-    
-    🆕 PERSONALIZATION: Now saves messages to custom chat database!
-    - User messages stored in chat_messages table
-    - Assistant responses tracked with agent type
-    - Session tracking in chat_sessions table
-    
-    **Args:**
-    - user_id: User identifier for tracking
-    - query: Tax-related question
-    - thread_id: Conversation thread for context
-    
-    **Returns:**
-    - ChatResponse with bot answer and metadata
     """
     try:
         logger.info(f"📨 Chat request - User: {chat_req.user_id}, Thread: {chat_req.thread_id}")
@@ -90,8 +78,12 @@ async def chat(request: Request, chat_req: ChatRequest) -> ChatResponse:
                 tokens_used=0  # TODO: Add token counting in Phase 7
             )
             logger.info("💾 Assistant response saved to database")
+            
+            # 🆕 BACKGROUND LEARNING
+            schedule_learning(background_tasks, chat_req.user_id, result)
+            
         except Exception as e:
-            logger.warning(f"⚠️  Failed to save assistant message: {e}")
+            logger.warning(f"⚠️  Failed to save assistant message or schedule task: {e}")
         
         # Map the response to ChatResponse schema
         return ChatResponse(

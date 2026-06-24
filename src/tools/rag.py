@@ -29,7 +29,9 @@ def query_rag(
     max_tokens: int = settings.MAX_TOKENS,
     tax_collection: str = "tax_documents",
     paye_collection: str = "paye_calculations",
-    chat_history: str = " "
+    chat_history: str = " ",
+    use_hybrid: bool = True,
+    user_preferences: Optional[Dict] = None
 ) -> Dict:
     """
     Main RAG pipeline query function - MODULAR & REUSABLE.
@@ -47,6 +49,7 @@ def query_rag(
         max_tokens: Maximum tokens in LLM response
         tax_collection: Name of the tax policy collection
         paye_collection: Name of the PAYE collection
+        use_hybrid: Whether to use Hybrid Search (BM25 + Semantic)
     
     Returns:
         Dictionary containing:
@@ -64,7 +67,8 @@ def query_rag(
             collection_type=collection_type,
             top_k=top_k,
             tax_collection=tax_collection,
-            paye_collection=paye_collection
+            paye_collection=paye_collection,
+            use_hybrid=use_hybrid
         )
         
         if not retrieved_docs:
@@ -79,7 +83,7 @@ def query_rag(
         context = format_context(retrieved_docs)
         
         # Step 3: Create prompt
-        prompt = create_prompt(user_query, context, chat_history)
+        prompt = create_prompt(user_query, context, chat_history, user_preferences)
         
         # Step 4: Generate response using LLM
         answer, model_used = generate_response(

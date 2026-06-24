@@ -26,6 +26,7 @@ from src.services import LLMManager
 
 from src.configurations.logging_config import setup_structured_logging
 
+
 setup_structured_logging()
 logger = structlog.get_logger("fastapi_app")
 
@@ -38,9 +39,7 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for startup and shutdown events.
     """
     # Startup
-    logger.info("🚀 Starting Nigerian Tax Chatbot API...")
-    logger.info("✅ API is ready to accept requests")
-    
+    logger.info("Starting Nigerian Tax Chatbot API...")    
     yield
     
     # Shutdown

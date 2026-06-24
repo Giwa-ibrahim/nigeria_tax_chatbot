@@ -14,6 +14,7 @@ async def tax_policy_agent(state: AgentState) -> AgentState:
     
     query = state["query"]
     chat_history = format_chat_history(state.get("messages", []))
+    user_preferences = state.get("user_preferences", {})
     
     # Query knowledge base
     logger.info("📖 Querying knowledge base...")
@@ -22,7 +23,8 @@ async def tax_policy_agent(state: AgentState) -> AgentState:
         collection_type="tax",
         top_k=3,
         return_sources=True,
-        chat_history=chat_history
+        chat_history=chat_history,
+        user_preferences=user_preferences
     )
     
     # Use RAG answer directly

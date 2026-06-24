@@ -57,7 +57,7 @@ async def verify_webhook(
     logger.info(f"Mode: {hub_mode}, Token: {hub_verify_token}, Challenge: {hub_challenge}")
     
     # Verify the request
-    if hub_mode == "subscribe" and hub_verify_token == settings.WHATSAPP_VERIFY_TOKEN:
+    if hub_mode == "subscribe" and hub_verify_token == settings.ENDPOINT_AUTH_KEY:
         logger.info("✅ Webhook verified successfully")
         return Response(content=hub_challenge, media_type="text/plain")
     else:

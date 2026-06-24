@@ -4,6 +4,8 @@ from src.agent.graph_builder.agent_state import AgentState
 from src.tools.web_search import search_financial_web
 from src.services.llm import LLMManager
 from src.agent.utils import format_chat_history
+from src.agent.prompt_library.system_prompts import FINANCIAL_ADVICE_PROMPT
+from src.agent.prompt_library.base import get_preference_instructions
 
 logger = logging.getLogger("financial_advice_agent")
 
@@ -16,6 +18,7 @@ async def financial_advice_agent(state: AgentState) -> AgentState:
     logger.info("💰 Financial Advice Agent processing...")
     
     query = state["query"]
+    user_preferences = state.get("user_preferences", {})
     
     # Search financial websites
     logger.info("🔍 Searching Nigerian financial websites...")
@@ -28,29 +31,14 @@ async def financial_advice_agent(state: AgentState) -> AgentState:
         if chat_history and chat_history.strip() and chat_history != "No previous conversation.":
             history_section = f"\nPREVIOUS CONVERSATION:\n{chat_history}\n"
         
-        financial_prompt = f"""You are a helpful Nigerian Financial Advisor. Use the following information from trusted Nigerian financial websites to provide accurate, practical financial advice.
-
-{history_section}
-
-INFORMATION FROM FINANCIAL SOURCES:
-{web_results}
-
-USER QUESTION:
-{query}
-
-INSTRUCTIONS:
-1. Provide practical, actionable financial advice based on the Nigerian context
-2. Be clear and direct - answer the specific question asked
-3. Use information from the sources provided
-4. If discussing investments, mention both opportunities and risks
-5. Include specific numbers, rates, or percentages when available
-6. Make recommendations relevant to the Nigerian financial landscape
-7. Be conversational and relatable to young Nigerian audience
-8. If the sources don't have enough information, say so clearly
-9. Do NOT reference sources by number (e.g., "Source 1", "Source 2")
-10. Keep the response focused and concise
-
-FINANCIAL ADVICE:"""
+        pref_inst = get_preference_instructions(user_preferences)
+        
+        financial_prompt = FINANCIAL_ADVICE_PROMPT.format(
+            history_section=history_section,
+            web_results=web_results,
+            query=query,
+            preference_instructions=pref_inst
+        )
         
         # Use LLM to generate advice
         try:
