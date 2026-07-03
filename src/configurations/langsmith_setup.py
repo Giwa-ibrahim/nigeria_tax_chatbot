@@ -1,19 +1,22 @@
 import os, structlog
-from src.configurations.config import settings
+from dotenv import load_dotenv
 
-logger = structlog.get_logger()
-
+logger = structlog.get_logger("langsmith_setup")
 
 def setup_langsmith() -> None:
-    """Configure LangSmith environment variables for automatic tracing.
-    """
-    langsmith_enabled: bool = True if settings.LANGSMITH_API_KEY else False
-    if not langsmith_enabled:
-        logger.info("LangSmith tracing disabled (no API key)")
+    """Configure LangSmith environment variables for automatic tracing."""
+    # Ensure .env is pushed to os.environ first
+    load_dotenv() 
+    
+    api_key = os.environ.get("LANGCHAIN_API_KEY")
+    project= "taxbot"
+    
+    if not api_key:
+        logger.warning("LangSmith tracing disabled (no API key found in .env)")
         return
     
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
-    os.environ["LANGCHAIN_API_KEY"] = settings.LANGSMITH_API_KEY
-    os.environ["LANGCHAIN_PROJECT"] = settings.LANGSMITH_PROJECT
+    os.environ["LANGCHAIN_API_KEY"] = api_key
+    os.environ["LANGCHAIN_PROJECT"] = project
     
-    logger.info("LangSmith tracing enabled project=%s", settings.LANGSMITH_PROJECT)
+    logger.info(f"LangSmith tracing enabled project")
