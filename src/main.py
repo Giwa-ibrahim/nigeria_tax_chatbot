@@ -25,9 +25,11 @@ from src.api.utilis.auth import endpoint_auth
 from src.services import LLMManager
 
 from src.configurations.logging_config import setup_structured_logging
+from src.configurations.langsmith_setup import setup_langsmith
 
-
+# Configure structured logging
 setup_structured_logging()
+setup_langsmith()
 logger = structlog.get_logger("fastapi_app")
 
 
@@ -40,6 +42,7 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting Nigerian Tax Chatbot API...")    
+    
     yield
     
     # Shutdown

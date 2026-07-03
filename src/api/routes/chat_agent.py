@@ -1,4 +1,5 @@
-import structlog
+import structlog, time
+import tiktoken
 from fastapi import APIRouter, HTTPException, status, Request, BackgroundTasks
 from typing import Dict, Any, List
 from datetime import datetime
@@ -32,6 +33,9 @@ async def chat(request: Request, chat_req: ChatRequest, background_tasks: Backgr
     """
     Handle chat requests with the Nigerian Tax Assistant.
     """
+    import time
+    start_time = time.time()
+    
     try:
         logger.info(f"📨 Chat request - User: {chat_req.user_id}, Thread: {chat_req.thread_id}")
         
@@ -53,6 +57,15 @@ async def chat(request: Request, chat_req: ChatRequest, background_tasks: Backgr
         
         # 🆕 SAVE USER MESSAGE TO DATABASE
         try:
+            # Check if session exists, create with metadata if not
+            session = await ChatSessionRepository.get_session(chat_req.thread_id)
+            if not session:
+                await ChatSessionRepository.create_session(
+                    thread_id=chat_req.thread_id,
+                    user_id=chat_req.user_id
+                )
+                logger.info(f"🆕 Created new session: {chat_req.thread_id}")
+
             await ChatManager.add_user_message(
                 thread_id=chat_req.thread_id,
                 content=chat_req.query
@@ -69,21 +82,28 @@ async def chat(request: Request, chat_req: ChatRequest, background_tasks: Backgr
             thread_id=chat_req.thread_id
         )
         
-        # 🆕 SAVE ASSISTANT RESPONSE TO DATABASE
+        # SAVE ASSISTANT RESPONSE TO DATABASE
         try:
+            # Count actual tokens in the response
+            enc = tiktoken.get_encoding("cl100k_base")
+            tokens_used = len(enc.encode(result["answer"]))
+
             await ChatManager.add_assistant_message(
                 thread_id=chat_req.thread_id,
                 content=result["answer"],
-                agent_type=result["route_used"],  # paye, tax_policy, financial_advice
-                tokens_used=0  # TODO: Add token counting in Phase 7
+                agent_type=result["route_used"],
+                tokens_used=tokens_used
             )
             logger.info("💾 Assistant response saved to database")
-            
-            # 🆕 BACKGROUND LEARNING
+
+            # BACKGROUND LEARNING
             schedule_learning(background_tasks, chat_req.user_id, result)
-            
+
         except Exception as e:
             logger.warning(f"⚠️  Failed to save assistant message or schedule task: {e}")
+
+        
+        processing_time_sec = round(time.time() - start_time, 2)
         
         # Map the response to ChatResponse schema
         return ChatResponse(
@@ -91,7 +111,8 @@ async def chat(request: Request, chat_req: ChatRequest, background_tasks: Backgr
             thread_id=chat_req.thread_id,
             bot_response=result["answer"],
             data_source=result["route_used"],
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
+            processing_time_sec=processing_time_sec
         )
         
     except Exception as e:

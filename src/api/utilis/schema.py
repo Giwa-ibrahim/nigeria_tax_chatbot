@@ -23,6 +23,7 @@ class ChatResponse(BaseModel):
     bot_response: str = Field(..., description="AI-generated answer to the user's query")
     data_source: str = Field(..., description="Route used to generate the answer")
     timestamp: Optional[datetime] = Field(..., description="Timestamp of the response")
+    processing_time_sec: Optional[float] = Field(default=None, description="Time taken to generate the response in seconds")
 
 # Conversation History
 

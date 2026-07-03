@@ -22,8 +22,7 @@ class ChatSessionRepository:
     @staticmethod
     async def create_session(
         thread_id: str,
-        user_id: Optional[str] = None,
-        extra_metadata: Optional[Dict[str, Any]] = None
+        user_id: Optional[str] = None
     ) -> ChatSession:
         """Create a new chat session."""
         async with get_db_session() as session:
@@ -32,7 +31,7 @@ class ChatSessionRepository:
                 user_id=user_id,
                 status="active",
                 message_count=0,
-                extra_metadata=extra_metadata,
+                current_state={"status": "active", "message_count": 0},
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
@@ -133,16 +132,22 @@ class ChatMessageRepository:
                 created_at=datetime.utcnow()
             )
             session.add(message)
-            
-            # Update session message count
+
+            # Update session message count and current_state
             stmt = select(ChatSession).where(ChatSession.id == session_id)
             result = await session.execute(stmt)
             chat_session = result.scalar_one_or_none()
-            
+
             if chat_session:
                 chat_session.message_count += 1
                 chat_session.updated_at = datetime.utcnow()
-            
+                chat_session.current_state = {
+                    "status": "active",
+                    "message_count": chat_session.message_count,
+                    "last_role": role,
+                    "last_agent": agent_type
+                }
+
             await session.commit()
             return message
     
@@ -215,10 +220,33 @@ class ChatMessageRepository:
                 "agent_distribution": agent_distribution
             }
 
+class ChatSummaryRepository:
+    """Repository for chat summary operations."""
+
+    @staticmethod
+    async def create_summary(
+        session_id: str,
+        summary_text: str,
+        message_range: Optional[str] = None
+    ) -> ChatSummary:
+        """Persist a conversation summary to the chat_summaries table."""
+        async with get_db_session() as session:
+            summary = ChatSummary(
+                id=str(uuid4()),
+                session_id=session_id,
+                summary_text=summary_text,
+                message_range=message_range,
+                created_at=datetime.utcnow()
+            )
+            session.add(summary)
+            await session.commit()
+            logger.info(f"Saved summary for session: {session_id} (range: {message_range})")
+            return summary
+
 
 class ChatUserRepository:
     """Repository for user tracking operations."""
-    
+
     @staticmethod
     async def create_or_update_user(
         user_id: str

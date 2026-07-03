@@ -2,6 +2,7 @@ import logging
 from src.agent.graph_builder.agent_state import AgentState
 from src.tools.rag import query_rag
 from src.agent.utils import format_chat_history
+from src.agent.context_injector import build_user_context_block
 
 logger = logging.getLogger("tax_policy_agent")
 
@@ -15,7 +16,11 @@ async def tax_policy_agent(state: AgentState) -> AgentState:
     query = state["query"]
     chat_history = format_chat_history(state.get("messages", []))
     user_preferences = state.get("user_preferences", {})
-    
+
+    # Dynamic user context injection (LLM-driven — only for personal queries)
+    user_ctx = build_user_context_block(state)
+    rag_context = f"{user_ctx}\n{chat_history}" if user_ctx else chat_history
+
     # Query knowledge base
     logger.info("📖 Querying knowledge base...")
     result = query_rag(
@@ -23,7 +28,7 @@ async def tax_policy_agent(state: AgentState) -> AgentState:
         collection_type="tax",
         top_k=3,
         return_sources=True,
-        chat_history=chat_history,
+        chat_history=rag_context,
         user_preferences=user_preferences
     )
     

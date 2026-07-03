@@ -36,7 +36,7 @@ async def get_prompts(user_id: str) -> PromptsResponse:
     try:
         logger.info(f"📝 Fetching prompts for user: {user_id}")
         
-        prompts = get_personalized_prompts()
+        prompts = await get_personalized_prompts(user_id)
         
         return PromptsResponse(
             prompts=prompts,

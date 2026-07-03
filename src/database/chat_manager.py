@@ -4,7 +4,7 @@ Provides simple APIs for common operations.
 """
 import logging
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional, Any
 from uuid import uuid4
 
 from src.database.repository import (
@@ -25,29 +25,27 @@ class ChatManager:
     
     @staticmethod
     async def start_session(
-        user_id: Optional[str] = None,
-        extra_metadata: Optional[Dict[str, Any]] = None
+        user_id: Optional[str] = None
     ) -> str:
         """
         Start a new chat session.
-        
+
         Args:
             user_id: Optional user identifier
-            extra_metadata: Additional metadata
-        
+
         Returns:
             thread_id: Session identifier
         """
         thread_id = str(uuid4())
-        
+
         await ChatSessionRepository.create_session(
             thread_id=thread_id,
-            user_id=user_id,
-            extra_metadata=extra_metadata
+            user_id=user_id
         )
-        
+
         logger.info(f"Started new session: {thread_id}")
         return thread_id
+
     
     @staticmethod
     async def add_user_message(

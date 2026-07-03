@@ -4,12 +4,11 @@ from src.tools.rag import query_rag
 from src.agent.utils import format_chat_history
 from src.tools.web_search import search_web
 from src.agent.meta_prompt import (
-    analyze_query_for_tax_calculation,
     generate_clarification_request,
     generate_conditional_answer,
     create_engagement_response
 )
-from src.agent.context_enrichment import get_paye_instructions
+from src.agent.context_injector import build_user_context_block
 
 logger = logging.getLogger("paye_agent")
 
@@ -32,31 +31,36 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
     query = state["query"]
     chat_history = format_chat_history(state.get("messages", []))
     user_preferences = state.get("user_preferences", {})
-    
-    # 🆕 CHECK FOR PRE-LOADED USER DATA
-    paye_context = state.get("paye_user_context")
-    has_user_data = paye_context is not None
-    
-    if has_user_data:
-        logger.info("✅ User has pre-loaded tax data from main app!")
-    else:
-        logger.info("⚠️  No tax data found - will ask questions")
-    
-    # META-PROMPTING: Analyze the query first
-    logger.info("🤔 Analyzing query to determine approach...")
-    meta_analysis = analyze_query_for_tax_calculation(query, chat_history)
-    
-    # DECISION TREE based on meta-analysis
+
+    # Read meta_analysis from router (already computed — no extra LLM call needed)
+    meta_analysis = state.get("meta_analysis") or {}
     approach = meta_analysis.get("approach", "direct")
     user_mood = meta_analysis.get("user_mood", "neutral")
     needs_clarification = meta_analysis.get("needs_clarification", False)
     missing_info = meta_analysis.get("missing_info", [])
     is_calculation_request = meta_analysis.get("is_calculation_request", False)
-    
+
+    # If meta_analysis was not pre-computed (fallback), use defaults
+    if not meta_analysis.get("route"):
+        logger.info("⚠️ No pre-computed meta_analysis found — using fallback defaults")
+        approach = "direct"
+        user_mood = "neutral"
+        needs_clarification = False
+        missing_info = []
+        is_calculation_request = False
+
+    # Dynamic user context injection (LLM-driven via router's needs_user_context flag)
+    user_context_block = build_user_context_block(state)
+    has_user_data = bool(user_context_block)
+
+    if has_user_data:
+        logger.info("✅ User profile context will be injected into PAYE prompt")
+    else:
+        logger.info("ℹ️ No personal context needed for this query")
+
     logger.info(f"📊 Calc request: {is_calculation_request}, Approach: {approach}, Mood: {user_mood}, Needs info: {needs_clarification}")
-    
-    # 🆕 OVERRIDE CLARIFICATION IF USER DATA EXISTS
-    # If user wants calculation AND we have their data → skip questions!
+
+    # OVERRIDE CLARIFICATION IF USER DATA EXISTS
     if is_calculation_request and has_user_data:
         logger.info("🎯 Calculation requested + user data exists → Using pre-loaded data!")
         needs_clarification = False
@@ -74,30 +78,29 @@ async def paye_calculation_agent(state: AgentState) -> AgentState:
             logger.info("✅ PAYE Agent: Requested missing deduction info")
             return state
     
-    # Otherwise, proceed with RAG search (no web search for PAYE - faster)
+    # Proceed with RAG search
     logger.info("📖 Querying knowledge base...")
-    
-    # 🆕 INCLUDE USER CONTEXT IN RAG QUERY if available
+
+    # Inject user context into RAG query if personal data is warranted
     rag_context = chat_history
-    if paye_context:
-        rag_context = f"{paye_context}\n\n{chat_history}"
-        logger.info("📋 Added pre-loaded tax data to RAG context")
-    
+    if user_context_block:
+        rag_context = f"{user_context_block}\n\n{chat_history}"
+        logger.info("📋 Injected user profile into RAG context")
+
     result = query_rag(
         user_query=query,
         collection_type="paye",
         top_k=3,
         return_sources=True,
-        chat_history=rag_context,  # 🆕 Enhanced with user data
+        chat_history=rag_context,
         user_preferences=user_preferences
     )
-    
+
     combined_context = result['answer']
-    
-    # 🆕 PREPEND USER INSTRUCTIONS if data exists
-    if paye_context:
-        instructions = get_paye_instructions(has_context=True)
-        combined_context = f"{instructions}\n\n{combined_context}"
+
+    # Prepend user data block to LLM context if available
+    if user_context_block:
+        combined_context = f"{user_context_block}\n\n{combined_context}"
     
     # Continue with decision tree
     logger.info(f"📊 Approach: {approach}, Mood: {user_mood}")

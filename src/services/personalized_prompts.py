@@ -4,59 +4,72 @@ Personalized Prompts Service
 LLM-generated simple example prompts covering all routes.
 """
 
-import logging
+import logging, asyncio
 import json
 import re
-from typing import List
+from typing import List, Dict
 from src.services.llm import LLMManager
+from src.services.user_data import UserDataService
+from src.agent.prompt_library.system_prompts import PERSONALISED_USER_PROMPT
 
 logger = logging.getLogger("personalized_prompts")
 
-# Cache for generated prompts
-_cached_prompts = None
+# Cache for generated prompts: user_id -> list of prompts
+_cached_prompts: Dict[str, List[str]] = {}
 
+# Default generic prompts if no user_id is provided or generation fails
+DEFAULT_PROMPTS = [
+    "What is VAT in Nigeria?",
+    "Calculate PAYE on ₦200,000 monthly salary",
+    "Best investment options in Nigeria?",
+    "How does pension contribution reduce my tax?",
+    "Who is tax exempt under the 2026 policy?",
+    "What deductions can reduce my PAYE?",
+    "How to save money while paying taxes?",
+    "Explain the new tax reform and its impact on salaries"
+]
 
-def get_personalized_prompts() -> List[str]:
+async def get_personalized_prompts(user_id: str = None) -> List[str]:
     """
-    Generate 8 diverse example prompts using LLM (cached).
+    Generate 8 diverse example prompts using LLM based on user profile (cached).
     
+    Args:
+        user_id: The ID of the user to personalize prompts for.
+        
     Returns:
         List of 8 question strings covering tax, PAYE, financial, and combined topics.
     """
     global _cached_prompts
     
-    if _cached_prompts is not None:
-        return _cached_prompts
-    
-    generation_prompt = """Generate 8 diverse example questions for a Nigerian tax and financial chatbot.
-
-REQUIREMENTS:
-1. Cover ALL 4 capabilities:
-   - Tax policies (VAT, corporate tax, exemptions, reliefs)
-   - PAYE calculations (salary tax, deductions)
-   - Financial advice (investments, savings, budgeting)
-   - Combined (tax + PAYE interactions)
-
-2. Practical and relatable to everyday Nigerians
-3. Use realistic amounts (₦150k, ₦300k, ₦500k monthly salaries)
-4. Mix simple and complex questions
-5. Include Nigeria Tax Act 2025/2026 topics
-
-EXAMPLES:
-- "What is VAT and how much do I pay in Nigeria?"
-- "Calculate my PAYE on ₦250,000 monthly salary"
-- "Best investment options for someone earning ₦300k/month"
-- "How does pension contribution reduce my tax?"
-
-Respond with ONLY a JSON array of 8 question strings:
-["question 1?", "question 2?", ...]
-
-JSON RESPONSE:"""
+    if not user_id:
+        return DEFAULT_PROMPTS
+        
+    # Check cache
+    if user_id in _cached_prompts:
+        return _cached_prompts[user_id]
+        
+    # Fetch user data to personalize prompts
+    try:
+        user_profile = await UserDataService.get_user_profile(user_id)
+    except Exception as e:
+        logger.warning(f"Could not load profile for prompts: {e}")
+        user_profile = {}
+        
+    # Determine context to inject
+    user_context = "The user is a general user in Nigeria."
+    if user_profile:
+        salary = user_profile.get("monthly_salary") or user_profile.get("annual_salary")
+        if salary:
+            user_context = f"The user earns {salary}. Please suggest realistic questions tailored to this income level."
+        
+    generation_prompt = PERSONALISED_USER_PROMPT.format(user_context=user_context)
     
     try:
         llm_manager = LLMManager()
         llm = llm_manager.get_llm()
-        response = llm.invoke(generation_prompt)
+        # Use asyncio.to_thread because LLMManager implements invoke(), not ainvoke()
+       
+        response = await asyncio.to_thread(llm.invoke, generation_prompt)
         
         # Extract JSON array from response
         content = response.content.strip()
@@ -68,22 +81,13 @@ JSON RESPONSE:"""
         
         if not isinstance(prompts, list) or len(prompts) < 8:
             logger.warning(f"LLM generated {len(prompts)} prompts, expected 8")
+            if len(prompts) < 8:
+                prompts.extend(DEFAULT_PROMPTS)
         
-        logger.info(f"✅ Generated {len(prompts)} personalized prompts")
-        _cached_prompts = prompts[:8]
-        return _cached_prompts
+        logger.info(f"✅ Generated {len(prompts)} personalized prompts for user {user_id}")
+        _cached_prompts[user_id] = prompts[:8]
+        return _cached_prompts[user_id]
         
     except Exception as e:
-        logger.error(f"Error generating prompts: {e}")
-        # Fallback
-        _cached_prompts = [
-            "What is VAT in Nigeria?",
-            "Calculate PAYE on ₦200,000 monthly salary",
-            "Best investment options in Nigeria?",
-            "How does pension contribution reduce my tax?",
-            "Who is tax exempt under the 2026 policy?",
-            "What deductions can reduce my PAYE?",
-            "How to save money while paying taxes?",
-            "Explain the new tax reform and its impact on salaries"
-        ]
-        return _cached_prompts
+        logger.error(f"Error generating prompts for user {user_id}: {e}")
+        return DEFAULT_PROMPTS

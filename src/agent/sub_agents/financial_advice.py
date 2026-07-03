@@ -4,6 +4,7 @@ from src.agent.graph_builder.agent_state import AgentState
 from src.tools.web_search import search_financial_web
 from src.services.llm import LLMManager
 from src.agent.utils import format_chat_history
+from src.agent.context_injector import build_user_context_block
 from src.agent.prompt_library.system_prompts import FINANCIAL_ADVICE_PROMPT
 from src.agent.prompt_library.base import get_preference_instructions
 
@@ -25,14 +26,19 @@ async def financial_advice_agent(state: AgentState) -> AgentState:
     web_results = search_financial_web(query, max_results=5)
     
     if web_results:
-        # Create prompt for financial advice synthesis
+        # Build history and user context sections
         chat_history = format_chat_history(state.get("messages", []))
         history_section = ""
         if chat_history and chat_history.strip() and chat_history != "No previous conversation.":
             history_section = f"\nPREVIOUS CONVERSATION:\n{chat_history}\n"
-        
+
+        # Dynamic user context injection — LLM decides if personal data is needed
+        user_ctx = build_user_context_block(state)
+        if user_ctx:
+            history_section = user_ctx + history_section
+
         pref_inst = get_preference_instructions(user_preferences)
-        
+
         financial_prompt = FINANCIAL_ADVICE_PROMPT.format(
             history_section=history_section,
             web_results=web_results,

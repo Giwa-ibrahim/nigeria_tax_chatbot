@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     )
     
     GROQ_API_KEY:str
-    GROQ_MODEL:str
+    GROQ_FAST_MODEL:str = "llama-3.1-8b-instant"
+    GROQ_POWER_MODEL:str = "llama-3.3-70b-versatile"
     COHERE_API_KEY:str
     COHERE_MODEL:str
     CEREBRAS_API_KEY:str = ""
@@ -29,8 +30,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "http://localhost:8000"
     
     # LangSmith Monitoring
-    LANGSMITH_TRACING: str = "true"
-    LANGSMITH_API_KEY: str
+    LANGSMITH_API_KEY: str = ""
     LANGSMITH_ENDPOINT: str = "https://api.smith.langchain.com"
     LANGSMITH_PROJECT: str = "taxbot"
 

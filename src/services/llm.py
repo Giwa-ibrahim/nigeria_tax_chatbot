@@ -42,18 +42,28 @@ class LLMManager:
         "cerebras": pybreaker.CircuitBreaker(fail_max=5, reset_timeout=60),
     }
 
-    def __init__(self) -> None:
+    # Groq model tiers 
+    GROQ_FAST_MODEL = settings.GROQ_FAST_MODEL   # Router, simple JSON tasks
+    GROQ_POWER_MODEL = settings.GROQ_POWER_MODEL # Answer generation, PAYE, synthesis
+
+    def __init__(self, model_tier: str = "power") -> None:
         self.temperature = settings.TEMPERATURE
         self.max_tokens = settings.MAX_TOKENS
         self.timeout = 8.0
+        self.model_tier = model_tier
 
         self.active_model: Optional[str] = None
         self.force_fallback = False
 
+        # Choose groq model based on tier
+        groq_model = (
+            self.GROQ_FAST_MODEL if model_tier == "fast" else self.GROQ_POWER_MODEL
+        )
+
         self.providers = {
             "groq": LLMProvider(
                 name="groq",
-                model=settings.GROQ_MODEL,
+                model=groq_model,
                 api_key=settings.GROQ_API_KEY,
                 client=ChatGroq,
                 key_arg="groq_api_key",

@@ -38,8 +38,7 @@ def get_async_engine() -> AsyncEngine:
     # Format URL for asyncpg and strip unsupported sslmode parameters
     db_url = settings.DATABASE_URL.replace("postgresql://", "postgres://", 1).replace("postgres://", "postgresql+asyncpg://", 1)
     db_url = db_url.split("?sslmode=")[0].split("&sslmode=")[0]
-    
-    logger.info("Creating async database engine...")
+
     
     # Engine configuration
     engine_kwargs = {
@@ -66,7 +65,7 @@ def get_async_engine() -> AsyncEngine:
     def receive_checkout(dbapi_conn, connection_record, connection_proxy):
         logger.debug("Connection checked out from pool")
     
-    logger.info("✅ Async database engine created")
+    # logger.info("✅ Async database engine created")
     return _engine
 
 
@@ -89,7 +88,7 @@ def get_session_factory() -> async_sessionmaker:
         autocommit=False,  # Explicit transaction control
     )
     
-    logger.info("✅ Session factory created")
+    # logger.info("✅ Session factory created")
     return _session_factory
 
 

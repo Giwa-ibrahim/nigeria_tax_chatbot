@@ -38,10 +38,7 @@ class ChatSession(Base):
     
     # Agent State (stores latest conversation state)
     current_state = Column(JSON, nullable=True)  # Latest agent state
-    
-    # Extra metadata (renamed from 'metadata' - reserved word in SQLAlchemy)
-    extra_metadata = Column(JSON, nullable=True)
-    
+
     # Relationships
     messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan")
     summaries = relationship("ChatSummary", back_populates="session", cascade="all, delete-orphan")

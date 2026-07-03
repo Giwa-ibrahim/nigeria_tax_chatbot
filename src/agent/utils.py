@@ -9,7 +9,7 @@ def format_chat_history(messages: list) -> str:
         return "No previous conversation."
     
     formatted = []
-    for msg in messages[-10:]:  # Only last 5 exchanges (10 messages)
+    for msg in messages:
         role = "user" if msg.type == "human" else "assistant"
         content = msg.content
         
