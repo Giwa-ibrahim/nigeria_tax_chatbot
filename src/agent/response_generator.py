@@ -66,6 +66,8 @@ PAYE DETAILS:
 def decide_next_step(state: AgentState) -> str:
     """
     Decide which node to execute next based on the route.
+    For 'general', the router already set final_answer inline.
+    The general_agent is a simple passthrough that adds the message to history.
     """
     route = state.get("route", "both")
     
@@ -75,6 +77,8 @@ def decide_next_step(state: AgentState) -> str:
         return "paye_agent"
     elif route == "financial":
         return "financial_agent"
+    elif route == "general":
+        return "general_agent"
     else:  # "both"
         return "combined_agent"
 

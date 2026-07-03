@@ -39,7 +39,7 @@ async def route_query(state: AgentState) -> AgentState:
         result = json.loads(content)
 
         route = result.get("route", "both").lower()
-        if route not in ["tax", "paye", "both", "financial"]:
+        if route not in ["tax", "paye", "both", "financial", "general"]:
             logger.warning(f"Invalid route '{route}', defaulting to 'both'")
             route = "both"
 
@@ -47,7 +47,15 @@ async def route_query(state: AgentState) -> AgentState:
         state["route"] = route
         state["meta_analysis"] = result
 
-        logger.info(f"🔀 Query routed to: {route.upper()} | user_ctx: {result.get('needs_user_context')} | calc: {result.get('is_calculation_request')}")
+        # Handle greetings/chitchat inline - no need for a separate agent node
+        if route == "general":
+            state["final_answer"] = (
+                "Hello! I'm your Nigerian Tax and Financial Assistant. "
+                "I can help with PAYE calculations, tax policies, or financial advice. What's your question?"
+            )
+            logger.info("👋 General query handled inline (greeting/chitchat)")
+        else:
+            logger.info(f"🔀 Query routed to: {route.upper()} | user_ctx: {result.get('needs_user_context')} | calc: {result.get('is_calculation_request')}")
 
     except Exception as e:
         logger.error(f"Error in routing: {e}, defaulting to 'both'")

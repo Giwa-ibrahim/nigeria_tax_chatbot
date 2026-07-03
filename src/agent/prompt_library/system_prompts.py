@@ -105,10 +105,11 @@ AVAILABLE ROUTES:
 - "tax" → General tax policies, VAT, corporate tax, tax laws, regulations, reliefs
 - "financial" → Personal finance, investments, savings, budgeting, money management
 - "both" → Queries needing BOTH tax policy AND PAYE info (not financial)
+- "general" → Greetings (e.g. "Hi", "Hello"), simple chitchat, thank yous, or out-of-scope queries that do not need tax/financial info
 
 OUTPUT a single JSON object with these fields:
 {{
-  "route": "<paye|tax|financial|both>",
+  "route": "<paye|tax|financial|both|general>",
   "needs_user_context": <true if query is about THIS specific user's own data (name, income, tax, expenses) | false for general/policy/hypothetical questions>,
   "is_calculation_request": <true|false>,
   "needs_clarification": <true if missing key numbers to do a calculation | false otherwise>,
